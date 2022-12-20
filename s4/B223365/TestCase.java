@@ -45,8 +45,10 @@ public class TestCase {
 	    freq = myObject.frequency();
 	    assert freq == 4: "Hi Ho Hi Ho, H: " + freq;
 	    // Write your testCase here
-
-
+	    myObject.setSpace("Hi Ho Hi Ho".getBytes());
+	    myObject.setTarget("Ho Hi".getBytes());
+	    freq = myObject.frequency();
+	    assert freq == 1: "Hi Ho Hi Ho, Ho Hi: " + freq;
 	}
 	catch(Exception e) {
 	    System.out.println("Exception occurred in Frequencer Object");

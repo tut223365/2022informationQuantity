@@ -44,15 +44,23 @@ public class Frequencer implements FrequencerInterface {
         int spaceLength = mySpace.length;
         int count = 0;
 	if(debugMode) { showVariables(); }
-        for(int start = 0; start<spaceLength; start++) { // Is it OK?
-            boolean abort = false;
-            for(int i = 0; i<targetLength; i++) {
-                if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
-            }
-            if(abort == false) { count++; }
-        }
+		if( targetLength > spaceLength ){
+			return -1;
+		}else{
+	        for(int start = 0; start<spaceLength; start++) { // Is it OK?
+	            boolean abort = false;
+	            for(int i = 0; i<targetLength; i++) {
+					if( (i+start) >= spaceLength){
+						abort = true;
+						break;
+					}
+	                if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
+	            }
+	            if(abort == false) { count++; }
+	        }
 	if(debugMode) { System.out.printf("%10d\n", count); }
-        return count;
+	        return count;
+		}
     }
 
     // I know that here is a potential problem in the declaration.
@@ -64,7 +72,7 @@ public class Frequencer implements FrequencerInterface {
 
     public static void main(String[] args) {
         Frequencer myObject;
-        int freq;
+		int freq;
 	// White box test, here.
 	debugMode = true;
         try {

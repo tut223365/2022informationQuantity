@@ -42,15 +42,22 @@ public class Frequencer implements FrequencerInterface {
     public int frequency() {
         int targetLength = myTarget.length;
         int spaceLength = mySpace.length;
-        int count = 0;
-	if(debugMode) { showVariables(); }
-        for(int start = 0; start<spaceLength; start++) { // Is it OK?
-            boolean abort = false;
-            for(int i = 0; i<targetLength; i++) {
-                if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
-            }
-            if(abort == false) { count++; }
-        }
+	
+	//UPDATE
+	if(targetLength > spaceLength){
+		System.out.println("Target is longer than Space !!");
+		return 0;
+	}
+        	int count = 0;
+		if(debugMode) { showVariables(); }
+        	for(int start = 0; start<spaceLength; start++) { // Is it OK?
+            		boolean abort = false;
+            		for(int i = 0; i<targetLength; i++) {
+                		if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
+            		}
+            		if(abort == false) { count++; }
+        	}
+	
 	if(debugMode) { System.out.printf("%10d\n", count); }
         return count;
     }

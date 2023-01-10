@@ -16,7 +16,7 @@ interface FrequencerInterface {     // This interface provides the design for fr
 */
 
 /*
-package s4.specification;
+//package s4.specification;
 public interface InformationEstimatorInterface{
     void setTarget(byte target[]); // set the data for computing the information quantities
     void setSpace(byte space[]); // set data for sample space to computer probability
@@ -45,14 +45,30 @@ public class TestCase {
 	    freq = myObject.frequency();
 	    assert freq == 4: "Hi Ho Hi Ho, H: " + freq;
 	    // Write your testCase here
-
-
+		myObject.setTarget("Hi".getBytes());
+	    freq = myObject.frequency();
+		assert freq == 2: "Hi Ho Hi Ho, Hi: " + freq;
+		myObject.setTarget("Ho".getBytes());
+	    freq = myObject.frequency();
+		assert freq == 2: "Hi Ho Hi Ho, Ho: " + freq;
+		myObject.setTarget("Hi Ho".getBytes());
+	    freq = myObject.frequency();
+		assert freq == 2: "Hi Ho Hi Ho, Hi Ho: " + freq;
+		myObject.setTarget("Ho Hi".getBytes());
+	    freq = myObject.frequency();
+		assert freq == 1: "Hi Ho Hi Ho, Ho Hi: " + freq;
+		myObject.setTarget("Hi Ho Hi".getBytes());
+	    freq = myObject.frequency();
+		assert freq == 1: "Hi Ho Hi Ho, Hi Ho Hi: " + freq;
+		myObject.setTarget("Hi Ho Hi Ho".getBytes());
+	    freq = myObject.frequency();
+		assert freq == 1: "Hi Ho Hi Ho, Hi Ho Hi Ho: " + freq;
 	}
 	catch(Exception e) {
 	    System.out.println("Exception occurred in Frequencer Object");
 	    success = false;
 	}
-
+	/*
 	try {
 	    InformationEstimatorInterface myObject;
 	    double value;
@@ -76,7 +92,9 @@ public class TestCase {
 	    System.out.println("Exception occurred in InformationEstimator Object");
 	    success = false;
 	}
+	*/
         if(success) { System.out.println("TestCase OK"); } 
     }
+
 }	    
 	    

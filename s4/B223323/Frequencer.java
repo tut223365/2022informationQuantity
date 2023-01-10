@@ -19,8 +19,8 @@ interface FrequencerInterface {  // This interface provides the design for frequ
 public class Frequencer implements FrequencerInterface {
     // Code to Test, *warning: This code contains intentional problem*
     static boolean debugMode = false;
-    byte[] myTarget;
-    byte[] mySpace;
+    byte[] myTarget = null;
+    byte[] mySpace = null;
 
     @Override
     public void setTarget(byte[] target) {
@@ -40,11 +40,14 @@ public class Frequencer implements FrequencerInterface {
 
     @Override
     public int frequency() {
+        if (myTarget == null || myTarget.length == 0) return -1;
+        if (mySpace == null || mySpace.length == 0) return 0;
+        
         int targetLength = myTarget.length;
         int spaceLength = mySpace.length;
         int count = 0;
 	if(debugMode) { showVariables(); }
-        for(int start = 0; start<spaceLength; start++) { // Is it OK?
+        for(int start = 0; start<spaceLength-targetLength+1; start++) { // Is it OK?
             boolean abort = false;
             for(int i = 0; i<targetLength; i++) {
                 if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
@@ -57,9 +60,24 @@ public class Frequencer implements FrequencerInterface {
 
     // I know that here is a potential problem in the declaration.
     @Override
-    public int subByteFrequency(int start, int length) {
+    public int subByteFrequency(int start, int end) {
         // Not yet implemented, but it should be defined as specified.
-        return -1;
+        if (myTarget == null || myTarget.length == 0) return -1;
+        if (mySpace == null || mySpace.length == 0) return 0;
+        
+        int targetLength = end - start;
+        int spaceLength = mySpace.length;
+        int count = 0;
+	if(debugMode) { showVariables(); }
+        for(int s = 0; s<spaceLength-targetLength+1; s++) { // Is it OK?
+            boolean abort = false;
+            for(int i = 0; i<targetLength; i++) {
+                if(myTarget[start+i] != mySpace[s+i]) { abort = true; break; }
+            }
+            if(abort == false) { count++; }
+        }
+	if(debugMode) { System.out.printf("%10d\n", count); }
+        return count;
     }
 
     public static void main(String[] args) {

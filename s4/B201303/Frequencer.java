@@ -44,22 +44,51 @@ public class Frequencer implements FrequencerInterface {
         int spaceLength = mySpace.length;
         int count = 0;
 	if(debugMode) { showVariables(); }
-        for(int start = 0; start<spaceLength; start++) { // Is it OK?
-            boolean abort = false;
-            for(int i = 0; i<targetLength; i++) {
-                if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
+	if(targetLength == 0){
+	    count = -1;
+	}else if(spaceLength == 0){
+	    count = 0;
+	}else{
+            for(int start = 0; start<spaceLength; start++) { // Is it OK?
+		if((start + targetLength) > spaceLength){
+		    break;
+		}
+                boolean abort = false;
+                for(int i = 0; i<targetLength; i++) {
+                    if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
+                }
+                if(abort == false) { count++; }
+	    
             }
-            if(abort == false) { count++; }
-        }
+	}
 	if(debugMode) { System.out.printf("%10d\n", count); }
         return count;
     }
 
     // I know that here is a potential problem in the declaration.
     @Override
-    public int subByteFrequency(int start, int length) {
-        // Not yet implemented, but it should be defined as specified.
-        return -1;
+    public int subByteFrequency(int start, int end) {
+	int targetLength = myTarget.length;
+	int spaceLength = mySpace.length;
+	int sub_count = 0;
+	int sublength = end - 1 - start;
+        if(start > targetLength || end > targetLength || sublength < -1){
+            return -1;
+	}else if(sublength == -1){
+	    return 0;
+	}else{
+	    for(int j = 0; j<spaceLength; j++){
+	        if((j + sublength) > spaceLength){
+		    break;
+		}
+		boolean abort = false;
+	        for(int i = start; i<end; i++){
+		    if(myTarget[i] != mySpace[j+i-start]) { abort = true; break; }
+	        }
+		if(abort == false) { sub_count++; }
+	    }
+	}
+	return sub_count;
     }
 
     public static void main(String[] args) {

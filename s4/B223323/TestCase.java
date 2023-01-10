@@ -45,10 +45,43 @@ public class TestCase {
 	    freq = myObject.frequency();
 	    assert freq == 4: "Hi Ho Hi Ho, H: " + freq;
 	    // Write your testCase here
+	    myObject = new Frequencer();
+	    myObject.setSpace("Hi Ho Hi Ho".getBytes());
+	    myObject.setTarget("Ho Hi".getBytes());
+	    freq = myObject.frequency();
+	    assert freq == 1: "Hi Ho Hi Ho, Ho Hi: " + freq;
+		myObject = new Frequencer();
+		freq = myObject.frequency();
+		assert freq == -1: "space not set, target not set:" + freq;
+		myObject = new Frequencer();
+		myObject.setSpace("Hi Ho Hi Ho".getBytes());
+		freq = myObject.frequency();
+		assert freq == -1: "space set, target not set:" + freq;
+		myObject = new Frequencer();
+		myObject.setTarget("Hi Ho Hi Ho".getBytes());
+		freq = myObject.frequency();
+		assert freq == 0: "space not set, target set:" + freq;
+		myObject = new Frequencer();
+		myObject.setSpace(new byte[0]);
+		myObject.setTarget("Hi Ho Hi Ho".getBytes());
+		freq = myObject.frequency();
+		assert freq == 0: "space length 0:" + freq;
+		myObject = new Frequencer();
+		myObject.setSpace("Hi Ho Hi Ho".getBytes());
+		myObject.setTarget(new byte[0]);
+		freq = myObject.frequency();
+		assert freq == -1: "target length 0:" + freq;
+	    myObject = new Frequencer();
+	    myObject.setSpace("Hi Ho Hi Ho".getBytes());
+	    myObject.setTarget("Ho Hi".getBytes());
+	    freq = myObject.subByteFrequency(3, 5);
+	    assert freq == 2: "Hi Ho Hi Ho, 'Ho Hi'.(3 to 4): " + freq;
+
 
 
 	}
 	catch(Exception e) {
+		e.printStackTrace();
 	    System.out.println("Exception occurred in Frequencer Object");
 	    success = false;
 	}

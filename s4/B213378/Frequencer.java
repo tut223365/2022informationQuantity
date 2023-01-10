@@ -2,7 +2,7 @@ package s4.B213378; // Please modify to s4.Bnnnnnn, where nnnnnn is your student
 import java.lang.*;
 import s4.specification.*;
 
-/*
+
 interface FrequencerInterface {  // This interface provides the design for frequency counter.
     void setTarget(byte[] target);  // set the data to search.
     void setSpace(byte[] space);  // set the data to be searched target from.
@@ -13,7 +13,7 @@ interface FrequencerInterface {  // This interface provides the design for frequ
     // get the frequency of subByte of taget, i.e. target[start], taget[start+1], ... , target[end-1].
     // For the incorrect value of START or END, the behavior is undefined.
 }
-*/
+
 
 
 public class Frequencer implements FrequencerInterface {
@@ -47,7 +47,13 @@ public class Frequencer implements FrequencerInterface {
         for(int start = 0; start<spaceLength; start++) { // Is it OK?
             boolean abort = false;
             for(int i = 0; i<targetLength; i++) {
-                if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
+                //problem occur when start+i is greater than or equal to mySpace.length 
+                //which cause index out of bound error. So we need to check as of the following
+                if(start+i<spaceLength){
+                    if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
+                } else {
+                    abort = true;
+                }
             }
             if(abort == false) { count++; }
         }
@@ -70,11 +76,12 @@ public class Frequencer implements FrequencerInterface {
         try {
             myObject = new Frequencer();
             myObject.setSpace("Hi Ho Hi Ho".getBytes());
-            myObject.setTarget("H".getBytes());
+            myObject.setTarget("Ho Hi".getBytes());
             freq = myObject.frequency();
         }
         catch(Exception e) {
             System.out.println("Exception occurred: STOP");
+            System.out.println(e);
         }
     }
 }

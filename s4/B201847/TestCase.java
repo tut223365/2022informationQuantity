@@ -45,7 +45,9 @@ public class TestCase {
 	    freq = myObject.frequency();
 	    assert freq == 4: "Hi Ho Hi Ho, H: " + freq;
 	    // Write your testCase here
-
+	    int start = 0;
+	    int length = 10;
+	    subBfreq = myObject.subByteFrequency(start, length); //return -1
 
 	}
 	catch(Exception e) {

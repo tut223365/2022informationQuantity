@@ -19,6 +19,7 @@ interface FrequencerInterface {  // This interface provides the design for frequ
 public class Frequencer implements FrequencerInterface {
     // Code to Test, *warning: This code contains intentional problem*
     static boolean debugMode = false;
+    // -128~127の範囲
     byte[] myTarget;
     byte[] mySpace;
 
@@ -32,26 +33,41 @@ public class Frequencer implements FrequencerInterface {
     }
 
     private void showVariables() {
-	for(int i=0; i< mySpace.length; i++) { System.out.write(mySpace[i]); }
-	System.out.write(' ');
-	for(int i=0; i< myTarget.length; i++) { System.out.write(myTarget[i]); }
-	System.out.write(' ');
+        for(int i=0; i< mySpace.length; i++) { 
+            System.out.write(mySpace[i]); 
+        }
+        System.out.write(' ');
+        for(int i=0; i< myTarget.length; i++) { 
+            System.out.write(myTarget[i]); 
+        }
+        System.out.write(' ');
     }
 
+    // frequency : 頻度
     @Override
     public int frequency() {
         int targetLength = myTarget.length;
         int spaceLength = mySpace.length;
         int count = 0;
-	if(debugMode) { showVariables(); }
-        for(int start = 0; start<spaceLength; start++) { // Is it OK?
+        if(debugMode) {
+            showVariables(); 
+        }
+        for(int start = 0; start<spaceLength+1-targetLength; start++) { // Is it OK?
             boolean abort = false;
             for(int i = 0; i<targetLength; i++) {
-                if(myTarget[i] != mySpace[start+i]) { abort = true; break; }
+                if(myTarget[i] != mySpace[start+i]) { 
+                    abort = true; 
+                    break; 
+                }
             }
-            if(abort == false) { count++; }
+            if(abort == false) { 
+                count++; 
+                start += targetLength - 1;
+            }
         }
-	if(debugMode) { System.out.printf("%10d\n", count); }
+        if(debugMode) { 
+            System.out.printf("%10d\n", count); 
+        }
         return count;
     }
 
@@ -65,10 +81,13 @@ public class Frequencer implements FrequencerInterface {
     public static void main(String[] args) {
         Frequencer myObject;
         int freq;
-	// White box test, here.
-	debugMode = true;
+        // White box test, here.
+        debugMode = true;
+
         try {
             myObject = new Frequencer();
+            // getBytes() : 文字コードを得る関数
+            // myObject.setSpace(str.getBytes());
             myObject.setSpace("Hi Ho Hi Ho".getBytes());
             myObject.setTarget("H".getBytes());
             freq = myObject.frequency();

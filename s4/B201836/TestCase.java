@@ -36,16 +36,22 @@ public class TestCase {
 	try {
 	    FrequencerInterface  myObject;
 	    int freq;
-	    System.out.println("checking Frequencer");
+	    System.out.println("checking smoke Frequencer");
 
 	    // This is smoke test
 	    myObject = new Frequencer();
 	    myObject.setSpace("Hi Ho Hi Ho".getBytes());
 	    myObject.setTarget("H".getBytes());
 	    freq = myObject.frequency();
-	    assert freq == 4: "Hi Ho Hi Ho, H: " + freq;
+	    assert freq == 4: "abc" + freq;
+		
+		
 	    // Write your testCase here
-
+	    System.out.println("checking my Frequencer");
+	    myObject.setSpace("abc".getBytes());
+	    myObject.setTarget("abcd".getBytes());
+	    freq = myObject.frequency();
+	    assert freq == 0: "Hi Ho Hi Ho, H: " + freq;
 
 	}
 	catch(Exception e) {

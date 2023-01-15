@@ -514,7 +514,8 @@ public class Frequencer implements FrequencerInterface{
             frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
             frequencerObject.printSuffixArray();
 
-			/// Test mySpace … Hi Ho Hi Ho, myTarget … H
+
+            /// Test mySpace … Hi Ho Hi Ho, myTarget … H
             frequencerObject.setTarget("H".getBytes());
 
             int Freq_result = frequencerObject.frequency();

@@ -22,6 +22,8 @@ public class InformationEstimator implements InformationEstimatorInterface {
     byte[] myTarget; // data to compute its information quantity
     byte[] mySpace;  // Sample space to compute the probability
     FrequencerInterface myFrequencer;  // Object for counting frequency
+    boolean targetReady = false;
+    boolean spaceReady = false;
 
     private void showVariables() {
 	for(int i=0; i< mySpace.length; i++) { System.out.write(mySpace[i]); }
@@ -51,51 +53,38 @@ public class InformationEstimator implements InformationEstimatorInterface {
     @Override
     public void setSpace(byte[] space) {
         myFrequencer = new Frequencer();
-        mySpace = space; myFrequencer.setSpace(space);
+        mySpace = space;
+        myFrequencer.setSpace(space);
     }
 
     @Override
     public double estimation(){
-        boolean [] partition = new boolean[myTarget.length+1];
-        int np = 1<<(myTarget.length-1);
+        double[] DP_array = new double[myTarget.length+1]; 
         double value = Double.MAX_VALUE; // value = mininimum of each "value1".
+        double ETA = 0.00000000000001;
+
 	if(debugMode) { showVariables(); }
-        if(debugMode) { System.out.printf("np=%d length=%d ", np, +myTarget.length); }
+        if( myTarget.length == 0 ) return (double) 0.0; //ターゲットの文字列の長さが0
 
-        for(int p=0; p<np; p++) { // There are 2^(n-1) kinds of partitions.
-            // binary representation of p forms partition.
-            // for partition {"ab" "cde" "fg"}
-            // a b c d e f g   : myTarget
-            // T F T F F T F T : partition:
-            partition[0] = true; // I know that this is not needed, but..
-            for(int i=0; i<myTarget.length -1;i++) {
-                partition[i+1] = (0 !=((1<<i) & p));
-            }
-            partition[myTarget.length] = true;
+        DP_array[0] = (double) 0.0;
+        for(int end=1; end <= myTarget.length; end++){
+            double value1 = Double.MAX_VALUE;
+            for(int start = 0; start < end; start++){
+                double value_innner = (double) 0.0;
+                value_innner = value_innner + DP_array[start];
 
-            // Compute Information Quantity for the partition, in "value1"
-            // value1 = IQ(#"ab")+IQ(#"cde")+IQ(#"fg") for the above example
-            double value1 = (double) 0.0;
-            int end = 0;
-            int start = end;
-            while(start<myTarget.length) {
-                // System.out.write(myTarget[end]);
-                end++;;
-                while(partition[end] == false) {
-                    // System.out.write(myTarget[end]);
-                    end++;
-                }
-                // System.out.print("("+start+","+end+")");
                 myFrequencer.setTarget(subBytes(myTarget, start, end));
-                value1 = value1 + iq(myFrequencer.frequency());
-                start = end;
-            }
-            // System.out.println(" "+ value1);
+                value_innner = value_innner + iq(myFrequencer.frequency());
 
-            // Get the minimal value in "value"
-            if(value1 < value) value = value1;
+                if( value_innner < value1 ) value1 = value_innner;
+            }
+            DP_array[end] = value1;
+            if( end == myTarget.length ){ //　最後のループの時の情報量
+                if( value1 < value ) value = value1;
+            }
         }
-	if(debugMode) { System.out.printf("%10.5f\n", value); }
+	    if(debugMode) { System.out.printf("%10.5f\n", value); }
+
         return value;
     }
 

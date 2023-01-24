@@ -152,13 +152,15 @@ public class Frequencer implements FrequencerInterface{
         int count = 0;                                        
         for(int offset = 0; offset< spaceLength - (end - start - 1); offset++) {
             boolean abort = false; 
-            for(int i = 0; i< (end - start - 1); i++) {
+            for(int i = 0; i< (end - start); i++) {
                 if(myTarget[start+i] != mySpace[offset+i]) {
                     abort = true; 
                     break; 
                 }
             }
-            if(abort == false) count++;
+            if(abort == false) {
+                count++;
+            }
         }
         return count;
     }

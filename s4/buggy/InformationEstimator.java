@@ -38,8 +38,8 @@ public class InformationEstimator implements InformationEstimatorInterface {
         return result;
     }
 
-    // IQ: information quantity for a count, -log2(count/sizeof(space))
-    double iq(int freq) {
+    // f: information quantity for a count, -log2(count/sizeof(space))
+    double f(int freq) {
         return  - Math.log10((double) freq / (double) mySpace.length)/ Math.log10((double) 2.0);
     }
 
@@ -74,7 +74,7 @@ public class InformationEstimator implements InformationEstimatorInterface {
             partition[myTarget.length] = true;
 
             // Compute Information Quantity for the partition, in "value1"
-            // value1 = IQ(#"ab")+IQ(#"cde")+IQ(#"fg") for the above example
+            // value1 = f(#"ab")+f(#"cde")+f(#"fg") for the above example
             double value1 = (double) 0.0;
             int end = 0;
             int start = end;
@@ -87,7 +87,9 @@ public class InformationEstimator implements InformationEstimatorInterface {
                 }
                 // System.out.print("("+start+","+end+")");
                 myFrequencer.setTarget(subBytes(myTarget, start, end));
-                value1 = value1 + iq(myFrequencer.frequency());
+                value1 = value1 + f(myFrequencer.frequency());
+		// it should  -->   value1 = value1 + f(myFrequencer.subByteFrequency(start, end)
+		// note that subByteFrequency is not work for buggy version.
                 start = end;
             }
             // System.out.println(" "+ value1);

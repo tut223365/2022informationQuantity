@@ -663,34 +663,34 @@ public class Frequencer implements FrequencerInterface{
             if(7 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
 
 
-//            // Frequency, Test
-//            // mySpace … Hi Ho Hi Ho, myTarget … H
-//            frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-//
-//            frequencerObject.setTarget("H".getBytes());
-//
-//            int result = frequencerObject.frequency();
-//            System.out.print("Freq = "+ result+" ");
-//            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//
-//            // Frequency vs slowsubByteFrequency
-//            frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-//            frequencerObject.printSuffixArray();
-//
-//
-//            /// Test mySpace … Hi Ho Hi Ho, myTarget … H
-//            frequencerObject.setTarget("H".getBytes());
-//
-//            int Freq_result = frequencerObject.frequency();
-//            System.out.print("Freq = "+ Freq_result+" ");
-//            if(4 == Freq_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//            int slow_result = frequencerObject.slowsubByteFrequency(0, frequencerObject.myTarget.length);
-//            System.out.print("Freq = "+ slow_result+" ");
-//            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+            // Frequency, Test
+            // mySpace … Hi Ho Hi Ho, myTarget … H
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+
+            frequencerObject.setTarget("H".getBytes());
+
+            int result = frequencerObject.frequency();
+            System.out.print("Freq = "+ result+" ");
+            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+
+            // Frequency vs slowsubByteFrequency
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+            frequencerObject.printSuffixArray();
+
+
+            /// Test mySpace … Hi Ho Hi Ho, myTarget … H
+            frequencerObject.setTarget("H".getBytes());
+
+            int Freq_result = frequencerObject.frequency();
+            System.out.print("Freq = "+ Freq_result+" ");
+            if(4 == Freq_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            int slow_result = frequencerObject.slowsubByteFrequency(0, frequencerObject.myTarget.length);
+            System.out.print("Freq = "+ slow_result+" ");
+            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
 
         }
         catch(Exception e) {

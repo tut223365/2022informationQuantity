@@ -59,13 +59,26 @@ public class InformationEstimator implements InformationEstimatorInterface {
 
     @Override
     public double estimation(){
-        double[] DP_array = new double[myTarget.length+1]; 
+        // Target check
+        // myTarget 未定義
+        if( myTarget == null ){
+	if(debugMode) { System.out.printf("%10.5f\n", 0.0); }
+            return (double) 0.0;
+        }
+        // myTarget 長さが0
+        if( myTarget.length == 0 ){
+	if(debugMode) { System.out.printf("%10.5f\n", 0.0); }
+            return (double) 0.0;
+        }
+
+        // 初期化
+        double[] DP_array = new double[myTarget.length+1];
         double value = Double.MAX_VALUE; // value = mininimum of each "value1".
         double ETA = 0.00000000000001;
 
 	if(debugMode) { showVariables(); }
-        if( myTarget.length == 0 ) return (double) 0.0; //ターゲットの文字列の長さが0
 
+        // 情報量を求める
         DP_array[0] = (double) 0.0;
         for(int end=1; end <= myTarget.length; end++){
             double value1 = Double.MAX_VALUE;
@@ -94,14 +107,14 @@ public class InformationEstimator implements InformationEstimatorInterface {
 	debugMode = true;
         myObject = new InformationEstimator();
         myObject.setSpace("3210321001230123".getBytes());
+        value = myObject.estimation();
+        myObject.setTarget("".getBytes());
+        value = myObject.estimation();
         myObject.setTarget("0".getBytes());
         value = myObject.estimation();
         myObject.setTarget("01".getBytes());
         value = myObject.estimation();
         myObject.setTarget("0123".getBytes());
         value = myObject.estimation();
-        myObject.setTarget("00".getBytes());
-        value = myObject.estimation();
     }
 }
-

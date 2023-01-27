@@ -81,11 +81,72 @@ public class Frequencer implements FrequencerInterface{
             if( s_i > s_j ) return 1;
             else if( s_i < s_j ) return -1;
         }
-        if( ( comp_pos-1 + suffix_j ) < mySpace.length ) return -1;
+        if( ( comp_pos + suffix_j ) < mySpace.length ) return -1;
         return 0;
     }
 
     public void setSpace(byte []space) {
+        // suffixArrayの前処理は、setSpaceで定義せよ。
+        mySpace = space; if(mySpace.length>0) spaceReady = true;
+        // First, create unsorted suffix array.
+        suffixArray = new int[space.length];
+        // put all suffixes in suffixArray.
+        for(int i = 0; i< space.length; i++) {
+            suffixArray[i] = i; // Please note that each suffix is expressed by one integer.
+        }
+        //
+        // ここに、int suffixArrayをソートするコードを書け。
+        // もし、mySpace が"ABC"ならば、
+        // suffixArray = { 0, 1, 2} となること求められる。
+        // このとき、printSuffixArrayを実行すると
+        //   suffixArray[ 0]= 0:ABC
+        //   suffixArray[ 1]= 1:BC
+        //   suffixArray[ 2]= 2:C
+        // のようになるべきである。
+        // もし、mySpace が"CBA"ならば
+        // suffixArray = { 2, 1, 0} となることが求めらる。
+        // このとき、printSuffixArrayを実行すると
+        //   suffixArray[ 0]= 2:A
+        //   suffixArray[ 1]= 1:BA
+        //   suffixArray[ 2]= 0:CBA
+        // のようになるべきである。
+
+        // クイックソート
+        // 参考 Web : https://talavax.com/quicksort.html#gsc.tab=0
+        // 参考 Web : https://qiita.com/gigegige/items/4817c27314a2393eb02d
+        quick_sort( 0, mySpace.length-1 );
+
+    }
+
+    private void quick_sort(int left, int right){
+        if( left >= right ) return;
+
+        int pivot;
+        pivot = (left+right)/2;
+
+        int l = left;
+        int r = right;
+        while( l <= r ){
+            while( suffixCompare( suffixArray[pivot], suffixArray[l] ) == 1) l++;
+            while( suffixCompare( suffixArray[pivot], suffixArray[r] ) == -1) r--;
+            if( l <= r ){
+                int tmp;
+                if( l == pivot ) pivot = r;
+                if( r == pivot ) pivot = l;
+                tmp = suffixArray[l];
+                suffixArray[l] = suffixArray[r];
+                suffixArray[r] = tmp;
+                l++;
+                r--;
+            }
+        }
+
+        quick_sort(left, r );
+        quick_sort(l, right );
+    }
+
+
+    public void buble_setSpace(byte []space) {
         // suffixArrayの前処理は、setSpaceで定義せよ。
         mySpace = space; if(mySpace.length>0) spaceReady = true;
         // First, create unsorted suffix array.
@@ -160,6 +221,9 @@ public class Frequencer implements FrequencerInterface{
         // 演習の内容は、適切なsubByteStartIndexとsubByteEndIndexを定義することである。
         int first = subByteStartIndex(start, end);
         int last1 = subByteEndIndex(start, end);
+
+        //int first = slow_subByteStartIndex(start, end);
+        //int last1 = slow_subByteEndIndex(start, end);
         return last1 - first;
     }
     // 変更してはいけないコードはここまで。
@@ -258,6 +322,56 @@ public class Frequencer implements FrequencerInterface{
         //
         // ここにコードを記述せよ。
         //
+        int suffix_i;
+        int comp_result;
+        int s,e;
+        int pivot;
+
+        s = 0;
+        e = mySpace.length;
+        pivot = 0;
+        while( s < e ){
+            pivot = s + (e - s)/2;
+            suffix_i = suffixArray[ pivot ];
+            comp_result = targetCompare( suffix_i, start, end );
+            if( comp_result == 1 ) e = pivot;
+            else if( comp_result == -1 ) s = pivot+1;
+            else e = pivot;
+        }
+        //System.out.printf("s %d, pivot %d, e %d\n", s, pivot, e);
+        return s;
+    }
+
+    private int slow_subByteStartIndex(int start, int end) {
+        //suffix arrayのなかで、目的の文字列の出現が始まる位置を求めるメソッド
+        // 以下のように定義せよ。
+        // The meaning of start and end is the same as subByteFrequency.
+        /* Example of suffix created from "Hi Ho Hi Ho"
+           0: Hi Ho
+           1: Ho
+           2: Ho Hi Ho
+           3:Hi Ho
+           4:Hi Ho Hi Ho
+           5:Ho
+           6:Ho Hi Ho
+           7:i Ho
+           8:i Ho Hi Ho
+           9:o
+          10:o Hi Ho
+        */
+
+        // It returns the index of the first suffix
+        // which is equal or greater than target_start_end.
+    // Suppose target is set "Ho Ho Ho Ho"
+        // if start = 0, and end = 2, target_start_end is "Ho".
+        // if start = 0, and end = 3, target_start_end is "Ho ".
+        // Assuming the suffix array is created from "Hi Ho Hi Ho",
+        // if target_start_end is "Ho", it will return 5.
+        // Assuming the suffix array is created from "Hi Ho Hi Ho",
+        // if target_start_end is "Ho ", it will return 6.
+        //
+        // ここにコードを記述せよ。
+        //
         int suffix_pos;
         int suffix_i;
         int comp_result;
@@ -272,7 +386,58 @@ public class Frequencer implements FrequencerInterface{
         return suffix_pos;
     }
 
+
     private int subByteEndIndex(int start, int end) {
+        //suffix arrayのなかで、目的の文字列の出現しなくなる場所を求めるメソッド
+        // 以下のように定義せよ。
+        // The meaning of start and end is the same as subByteFrequency.
+        /* Example of suffix created from "Hi Ho Hi Ho"
+           0: Hi Ho
+           1: Ho
+           2: Ho Hi Ho
+           3:Hi Ho
+           4:Hi Ho Hi Ho
+           5:Ho
+           6:Ho Hi Ho
+           7:i Ho
+           8:i Ho Hi Ho
+           9:o
+          10:o Hi Ho
+        */
+        // It returns the index of the first suffix
+        // which is greater than target_start_end; (and not equal to target_start_end)
+    // Suppose target is set "High_and_Low",
+        // if start = 0, and end = 2, target_start_end is "Hi".
+        // if start = 1, and end = 2, target_start_end is "i".
+        // Assuming the suffix array is created from "Hi Ho Hi Ho",
+        // if target_start_end is "Ho", it will return 7 for "Hi Ho Hi Ho".
+        // Assuming the suffix array is created from "Hi Ho Hi Ho",
+        // if target_start_end is"i", it will return 9 for "Hi Ho Hi Ho".
+        // ** suffixArrayの添字+1を返している?
+        //
+        //　ここにコードを記述せよ
+        int suffix_i;
+        int comp_result;
+        int s,e;
+        int pivot;
+        int ct;
+
+        s = 0;
+        e = mySpace.length;
+        pivot = 0;
+        while( s < e ){
+            pivot = s + (e - s)/2;
+            suffix_i = suffixArray[ pivot ];
+            comp_result = targetCompare( suffix_i, start, end );
+            if( comp_result == 1 ) e = pivot;
+            else if( comp_result == -1 ) s = pivot+1;
+            else s = pivot+1;
+        }
+        //System.out.printf("s %d, pivot %d, e %d\n", s, pivot, e);
+        return e;
+    }
+
+    private int slow_subByteEndIndex(int start, int end) {
         //suffix arrayのなかで、目的の文字列の出現しなくなる場所を求めるメソッド
         // 以下のように定義せよ。
         // The meaning of start and end is the same as subByteFrequency.
@@ -459,6 +624,7 @@ public class Frequencer implements FrequencerInterface{
             /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 0~2
             frequencerObject = new Frequencer();
             frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+            frequencerObject.printSuffixArray();
             frequencerObject.setTarget("Ho Ho Ho Ho".getBytes());
             start_result = frequencerObject.subByteStartIndex(0,2);
             if(5 == start_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
@@ -497,37 +663,38 @@ public class Frequencer implements FrequencerInterface{
             if(7 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
 
 
-            // Frequency, Test
-            // mySpace … Hi Ho Hi Ho, myTarget … H
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-
-            frequencerObject.setTarget("H".getBytes());
-
-            int result = frequencerObject.frequency();
-            System.out.print("Freq = "+ result+" ");
-            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-
-            // Frequency vs slowsubByteFrequency
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-            frequencerObject.printSuffixArray();
-
-
-            /// Test mySpace … Hi Ho Hi Ho, myTarget … H
-            frequencerObject.setTarget("H".getBytes());
-
-            int Freq_result = frequencerObject.frequency();
-            System.out.print("Freq = "+ Freq_result+" ");
-            if(4 == Freq_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            int slow_result = frequencerObject.slowsubByteFrequency(0, frequencerObject.myTarget.length);
-            System.out.print("Freq = "+ slow_result+" ");
-            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//            // Frequency, Test
+//            // mySpace … Hi Ho Hi Ho, myTarget … H
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+//
+//            frequencerObject.setTarget("H".getBytes());
+//
+//            int result = frequencerObject.frequency();
+//            System.out.print("Freq = "+ result+" ");
+//            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//
+//            // Frequency vs slowsubByteFrequency
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+//            frequencerObject.printSuffixArray();
+//
+//
+//            /// Test mySpace … Hi Ho Hi Ho, myTarget … H
+//            frequencerObject.setTarget("H".getBytes());
+//
+//            int Freq_result = frequencerObject.frequency();
+//            System.out.print("Freq = "+ Freq_result+" ");
+//            if(4 == Freq_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            int slow_result = frequencerObject.slowsubByteFrequency(0, frequencerObject.myTarget.length);
+//            System.out.print("Freq = "+ slow_result+" ");
+//            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
 
         }
         catch(Exception e) {
+            e.printStackTrace();
             System.out.println("STOP");
         }
     }

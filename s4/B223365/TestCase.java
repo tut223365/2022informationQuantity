@@ -53,7 +53,7 @@ public class TestCase {
 	    myObject.setSpace("Hi Ho Hi Ho".getBytes());
 	    myObject.setTarget("Hi Ho Hi Ho Hi".getBytes());
 	    freq = myObject.frequency();
-	    assert freq == -1: "Hi Ho Hi Ho, Hi Ho Hi Ho Hi: " + freq;
+	    assert freq == 0: "Hi Ho Hi Ho, Hi Ho Hi Ho Hi: " + freq;
 
 	}
 	catch(Exception e) {
@@ -65,6 +65,21 @@ public class TestCase {
 	    InformationEstimatorInterface myObject;
 	    double value;
 	    System.out.println("checking InformationEstimator");
+        // mySpace. myTarget 未定義
+	    myObject = new InformationEstimator();
+        value = myObject.estimation();
+
+        // myTarget 未定義
+	    myObject = new InformationEstimator();
+	    myObject.setSpace("3210321001230123".getBytes());
+        value = myObject.estimation();
+
+        // mySpace 未定義
+	    myObject = new InformationEstimator();
+	    myObject.setTarget("0".getBytes());
+        value = myObject.estimation();
+
+        // 元々のテストケース
 	    myObject = new InformationEstimator();
 	    myObject.setSpace("3210321001230123".getBytes());
 	    myObject.setTarget("0".getBytes());
@@ -79,6 +94,9 @@ public class TestCase {
 	    myObject.setTarget("00".getBytes());
 	    value = myObject.estimation();
 	    assert (value > 3.9999) && (4.0001 >value): "IQ for 00 in 3210321001230123 should be 3.0. But it returns "+value;
+
+        myObject.setTarget("".getBytes());
+        value = myObject.estimation();
 	}
 	catch(Exception e) {
 	    System.out.println("Exception occurred in InformationEstimator Object");

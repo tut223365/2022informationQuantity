@@ -1,4 +1,4 @@
-package s4.B223365; // Please modify to s4.Bnnnnnn, where nnnnnn is your student ID. 
+package s4.B223365; // Please modify to s4.Bnnnnnn, where nnnnnn is your student ID.
 import java.lang.*;
 import s4.specification.*;
 
@@ -70,6 +70,11 @@ public class InformationEstimator implements InformationEstimatorInterface {
 	if(debugMode) { System.out.printf("%10.5f\n", 0.0); }
             return (double) 0.0;
         }
+        // mySpace が未定義
+        if( mySpace == null ){
+	if(debugMode) { System.out.printf("%10.5f\n", Double.MAX_VALUE); }
+            return (double) Double.MAX_VALUE;
+        }
 
         // 初期化
         double[] DP_array = new double[myTarget.length+1];
@@ -101,20 +106,112 @@ public class InformationEstimator implements InformationEstimatorInterface {
         return value;
     }
 
+    private final double slow_estimation(){
+        // Target check
+        // myTarget 未定義
+        if( myTarget == null ){
+	if(debugMode) { System.out.printf("%10.5f\n", 0.0); }
+            return (double) 0.0;
+        }
+        // myTarget 長さが0
+        if( myTarget.length == 0 ){
+	if(debugMode) { System.out.printf("%10.5f\n", 0.0); }
+            return (double) 0.0;
+        }
+        // mySpace が未定義
+        if( mySpace == null ){
+	if(debugMode) { System.out.printf("%10.5f\n", Double.MAX_VALUE); }
+            return (double) Double.MAX_VALUE;
+        }
+
+       boolean [] partition = new boolean[myTarget.length+1];
+        int np = 1<<(myTarget.length-1);
+        double value = Double.MAX_VALUE; // value = mininimum of each "value1".
+	if(debugMode) { showVariables(); }
+        if(debugMode) { System.out.printf("np=%d length=%d ", np, +myTarget.length); }
+
+        for(int p=0; p<np; p++) { // There are 2^(n-1) kinds of partitions.
+            // binary representation of p forms partition.
+            // for partition {"ab" "cde" "fg"}
+            // a b c d e f g   : myTarget
+            // T F T F F T F T : partition:
+            partition[0] = true; // I know that this is not needed, but..
+            for(int i=0; i<myTarget.length -1;i++) {
+                partition[i+1] = (0 !=((1<<i) & p));
+            }
+            partition[myTarget.length] = true;
+
+            // Compute Information Quantity for the partition, in "value1"
+            // value1 = IQ(#"ab")+IQ(#"cde")+IQ(#"fg") for the above example
+            double value1 = (double) 0.0;
+            int end = 0;
+            int start = end;
+            while(start<myTarget.length) {
+                // System.out.write(myTarget[end]);
+                end++;;
+                while(partition[end] == false) {
+                    // System.out.write(myTarget[end]);
+                    end++;
+                }
+                // System.out.print("("+start+","+end+")");
+                myFrequencer.setTarget(subBytes(myTarget, start, end));
+                value1 = value1 + iq(myFrequencer.frequency());
+                start = end;
+            }
+            // System.out.println(" "+ value1);
+
+            // Get the minimal value in "value"
+            if(value1 < value) value = value1;
+        }
+	if(debugMode) { System.out.printf("%10.5f\n", value); }
+        return value;
+    }
+
     public static void main(String[] args) {
         InformationEstimator myObject;
         double value;
 	debugMode = true;
+        // mySpace. myTarget 未定義
+	    myObject = new InformationEstimator();
+        value = myObject.estimation();
+        //value = myObject.slow_estimation();
+
+        // myTarget 未定義
+	    myObject = new InformationEstimator();
+	    myObject.setSpace("3210321001230123".getBytes());
+        value = myObject.estimation();
+        //value = myObject.slow_estimation();
+
+        // mySpace 未定義
+	    myObject = new InformationEstimator();
+	    myObject.setTarget("0".getBytes());
+        value = myObject.estimation();
+        //value = myObject.slow_estimation();
+
+        // mySpace 未定義
+	    myObject = new InformationEstimator();
+        myObject.setSpace("".getBytes());
+	    myObject.setTarget("0".getBytes());
+        value = myObject.estimation();
+        //value = myObject.slow_estimation();
+
+        // ここからは元々のテストケース
         myObject = new InformationEstimator();
         myObject.setSpace("3210321001230123".getBytes());
-        value = myObject.estimation();
         myObject.setTarget("".getBytes());
         value = myObject.estimation();
+        //value = myObject.slow_estimation();
+
         myObject.setTarget("0".getBytes());
         value = myObject.estimation();
+        //value = myObject.slow_estimation();
+
         myObject.setTarget("01".getBytes());
         value = myObject.estimation();
+        //value = myObject.slow_estimation();
+
         myObject.setTarget("0123".getBytes());
         value = myObject.estimation();
+        //value = myObject.slow_estimation();
     }
 }

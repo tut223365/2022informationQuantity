@@ -22,6 +22,8 @@ public class InformationEstimator implements InformationEstimatorInterface {
     // Code to test, *warning: This code is slow, and it lacks the required test
     byte[] myTarget; // data to compute its information quantity
     byte[] mySpace;  // Sample space to compute the probability
+    boolean targetReady = false;
+    boolean spaceReady = false;
     Frequencer myFrequencer;  // Object for counting frequency
     // FrequencerInterface myFrequencer;  // Object for counting frequency
 
@@ -44,18 +46,14 @@ public class InformationEstimator implements InformationEstimatorInterface {
 
     // IQ: information quantity for a count, -log2(count/sizeof(space))
     double iq(int freq) {
-        return  - Math.log10((double)freq/(double)mySpace.length) / Math.log10((double)2.0);
-        // return  - Math.log2((double)freq/(double)mySpace.length);
-    }
-
-    double iq2(double x) {
-        return  - Math.log10(x) / Math.log10((double)2.0);
+        return  - Math.log10((double)freq/(double)mySpace.length);
         // return  - Math.log2((double)freq/(double)mySpace.length);
     }
 
     @Override
     public void setTarget(byte[] target) {
         myTarget = target;
+        targetReady = true;
     }
 
     @Override
@@ -63,56 +61,94 @@ public class InformationEstimator implements InformationEstimatorInterface {
         myFrequencer = new Frequencer();
         mySpace = space; 
         myFrequencer.setSpace(space);
+        spaceReady = true;
     }
 
     @Override
     public double estimation(){
         // use slow の場合は slowEstimation を使用
-        if(useSlow){
+        if (useSlow){
             return slowEstimation();
         }
-        // 全ての Frequency/(double)mySpace.length を予め計算する．
-        /** (double)mySpace.length で割っている理由
-         * もととなる IQ の式だと log の足し算を行っているが，
-         * 何度も log を計算するのは遅くなる． log の中身を掛け算
-         * して，最後に log を取れば回数を減らすことができるため，
-         * 後の計算のために割っている
-         */ 
-        double[][] freqs = new double[myTarget.length][myTarget.length];
-        for(int start = 0; start < myTarget.length; start++){
-            for(int end = start+1; end < myTarget.length+1; end++){
-                myFrequencer.setTarget(subBytes(myTarget, start, end));
-                freqs[start][end-1] = myFrequencer.frequency()/(double)mySpace.length;
-                // System.out.printf("freq %d\n", myFrequencer.frequency());
-                // これ以降もかならず0のため，break
-                if(freqs[start][end-1]==0) break;
-            }
+        // 入力が正しく設定されていないときは，以下を返す（仕様）
+        if (!targetReady || (myTarget.length == 0)){
+            return 0.0;
+        } else if (!spaceReady || (mySpace.length == 0)) {
+            return Double.MAX_VALUE;
         }
-        // 最終的に log を取る直前の中身を計算していく
+
+        int sl = mySpace.length;
+        
+        // // Frequency を一部のみ予め計算する．
+        // double[] iqs = new double[myTarget.length];
+        // int[] freqs = new int[myTarget.length];
+        // for (int i = 0; i < myTarget.length; i++) {
+        //     myFrequencer.setTarget(subBytes(myTarget, i, i+1));
+        //     freqs[i] = myFrequencer.frequency();
+        //     iqs[i] = iq(freqs[i]);
+        // }
+        // // 最終的に log を取る直前の中身を計算していく
+        // for(int i = 1; i < myTarget.length ; i++){
+        //     for (int j = 0; j+i < myTarget.length; j++){
+        //         // 前の freqs[j] が 0 なら，以降の freqs[j] も 0 となるはず．
+        //         // そうであるなら計算しない
+        //         if (freqs[j] > 0) {
+        //             myFrequencer.setTarget(subBytes(myTarget, j, j+i+1));
+        //             freqs[j] = myFrequencer.frequency();
+        //             iqs[j] = Math.min(
+        //                 iq(freqs[j]), 
+        //                 iqs[j]+iqs[j+1]
+        //             ); 
+        //         } else {
+        //             iqs[j] = iqs[j]*iqs[j+1];
+        //         }   
+        //     }
+        // }
+
+        // Frequency を一部のみ予め計算する．
+        double[] iqs = new double[myTarget.length];
+        int[][] freqs = new int[myTarget.length][2];
+        myFrequencer.setTarget(myTarget);
+        for (int j = 0; j < myTarget.length; j++) {
+            myFrequencer.setSpaceOffset(0);
+            myFrequencer.setTargetIndex(j);
+            freqs[j][0] = myFrequencer.subByteStartIndex2(0, mySpace.length);
+            freqs[j][1] = myFrequencer.subByteEndIndex2(freqs[j][0], mySpace.length);
+            iqs[j] = iq(freqs[j][1]-freqs[j][0]);
+        }
         for(int i = 1; i < myTarget.length ; i++){
             for (int j = 0; j+i < myTarget.length; j++){
-                // log の中身が最大となれば，外側が最小となるので，maxを取っている
-                freqs[j][j+i] = Math.max(
-                    freqs[j][j+i], 
-                    freqs[j][j+i-1]*freqs[j+1][j+i]
-                ); 
+                if (freqs[j][1]-freqs[j][0] > 0) {
+                    myFrequencer.setSpaceOffset(i);
+                    myFrequencer.setTargetIndex(i+j);
+                    freqs[j][0] = myFrequencer.subByteStartIndex2(freqs[j][0], freqs[j][1]);
+                    freqs[j][1] = myFrequencer.subByteEndIndex2(freqs[j][0], freqs[j][1]);
+                    iqs[j] = Math.min(
+                        iq(freqs[j][1]-freqs[j][0]), 
+                        iqs[j]+iqs[j+1]
+                    ); 
+                } else {
+                    iqs[j] = iqs[j]*iqs[j+1];
+                }   
             }
         }
-        // 最小の情報量は行列の右上
-        double min_iq = iq2(freqs[0][myTarget.length-1]);
+
+        // 0 で log を取ると無限になるので，そのときは以下を返す（仕様）
+        if (Double.isInfinite(iqs[0])) {
+            return Double.MAX_VALUE;
+        }
+        // 最小の情報量
+        double min_iq = iqs[0]/Math.log10((double)2.0);
         // 表示
         if(debugMode) { 
             showVariables(); 
             System.out.printf("length=%d \n", myTarget.length);
-            // System.out.printf("like freq %10.5f\n", freqs[0][myTarget.length-1]);
             System.out.printf("miniq %10.5f\n", min_iq);
             System.out.println("~ dp table ~");
             for (int i = 0; i < myTarget.length; i++){
-                for (int j = 0; j < myTarget.length; j++){
-                    System.out.printf("%.3f ", freqs[i][j]);
-                }
-                System.out.println();
+                System.out.printf("%.3f ", iqs[i]);
             }
+            System.out.println();
             // System.out.println("~ suffixArray ~");
             // myFrequencer.printSuffixArray();
         }

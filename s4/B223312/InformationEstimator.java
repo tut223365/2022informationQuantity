@@ -45,6 +45,9 @@ public class InformationEstimator implements InformationEstimatorInterface {
     }
 
     public double estimation() {
+        if (myTarget == null || myTarget.length == 0) return 0.0;
+        if (mySpace == null || mySpace.length == 0) return Double.MAX_VALUE;
+
         int targetLength = myTarget.length;
 
         // 動的計画法で求める

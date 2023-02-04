@@ -27,6 +27,10 @@ public class Frequencer implements FrequencerInterface{
 
     int []  suffixArray; // Suffix Arrayの実装に使うデータの型をint []とせよ。
 
+    // ソートを切り替える要素数
+    // 多ければクイックソート, 少なければ挿入ソート
+    private static final int switch_el_count = 14;
+
 
     // The variable, "suffixArray" is the sorted array of all suffixes of mySpace.
     // Each suffix is expressed by a integer, which is the starting position in mySpace.
@@ -111,28 +115,28 @@ public class Frequencer implements FrequencerInterface{
         //   suffixArray[ 2]= 0:CBA
         // のようになるべきである。
 
-        // クイックソート
-        // 参考 Web : https://talavax.com/quicksort.html#gsc.tab=0
-        // 参考 Web : https://qiita.com/gigegige/items/4817c27314a2393eb02d
-        quick_sort( 0, mySpace.length-1 );
+        
+        //my_quick_sort_core( 0, mySpace.length-1 );
+        quick_sort( 0, mySpace.length );
 
     }
 
-    private void quick_sort(int left, int right){
-        if( left >= right ) return;
+    // クイックソート
+    // 参考 Web : https://talavax.com/quicksort.html#gsc.tab=0
+    // 参考 Web : https://qiita.com/gigegige/items/4817c27314a2393eb02d
+    private void my_quick_sort_core(int left, int right){
+        if( left >= right ) return; // 要素数が1になったら終了
 
         int pivot;
-        pivot = (left+right)/2;
+        pivot = suffixArray[(left+right)/2];
 
         int l = left;
         int r = right;
         while( l <= r ){
-            while( suffixCompare( suffixArray[pivot], suffixArray[l] ) == 1) l++;
-            while( suffixCompare( suffixArray[pivot], suffixArray[r] ) == -1) r--;
+            while( suffixCompare( pivot, suffixArray[l] ) == 1) l++;
+            while( suffixCompare( pivot, suffixArray[r] ) == -1) r--;
             if( l <= r ){
                 int tmp;
-                if( l == pivot ) pivot = r;
-                if( r == pivot ) pivot = l;
                 tmp = suffixArray[l];
                 suffixArray[l] = suffixArray[r];
                 suffixArray[r] = tmp;
@@ -140,11 +144,97 @@ public class Frequencer implements FrequencerInterface{
                 r--;
             }
         }
+        r++;
 
         quick_sort(left, r );
         quick_sort(l, right );
     }
 
+    private void quick_sort(int left, int right){ // クイックソートの前処理を行う
+        int array_num; // 配列の要素数
+        array_num = right - left;
+        if( array_num < 2 ) return; // 配列の要素が一つしかない
+
+        int depth; // 分割した時の深さ (3グループに分割した時の最大要素数)
+        for( depth = 0; array_num > 0; array_num >>= 1 ) depth++; // 「array_num >> 1」 は 「array_num /= 2」と同じ動作
+        quick_sort_core( left, right, depth );
+
+    }
+
+    // 参考 プログラム : https://github.com/D3879/2022informationQuantity/blob/main/s4/B223323/Frequencer.java
+    // pivotにsuffix_arrayの値を入れれば「my_quick_sort_core: if( l == pivot ) pivot = r;」の部分はいらない
+    private void quick_sort_core(int left, int right, int d){
+        int T_array_num;
+        T_array_num = right - left; // ソート対象の要素数
+
+        if( left >= right ) return; // 要素数が1になったら終了
+
+        if( T_array_num < switch_el_count ){ // 要素数が少ない場合は, 挿入ソート
+            insert_sort( left, right );
+            return;
+        }
+
+        int pivot;
+        pivot = select_pivot_median( T_array_num, left, d ); // ピボットを選択
+
+        int l = left;
+        int r = right-1;
+        while( l <= r ){
+            while( suffixCompare( pivot, suffixArray[l] ) == 1) l++;
+            while( suffixCompare( pivot, suffixArray[r] ) == -1) r--;
+            if( l <= r ){
+                int tmp;
+                tmp = suffixArray[l];
+                suffixArray[l] = suffixArray[r];
+                suffixArray[r] = tmp;
+                l++;
+                r--;
+            }
+        }
+        r++;
+
+        quick_sort_core(left, r , d );
+        quick_sort_core(l, right, d );
+    }
+
+    // 参考 プログラム : https://github.com/D3879/2022informationQuantity/blob/main/s4/B223323/Frequencer.java
+    // 参考 Web : http://wwwa.pikara.ne.jp/okojisan/sort-killer/qsort-killer.html
+    private int select_pivot_median(int group_num, int group_start, int group_num_MAX){
+        if (group_num <= group_num_MAX) return suffixArray[group_start + (group_num >> 1)]; // 「n >> 1」は「n/2」と同じ動作
+        // 3つのグループに分けて、中央値を求める
+        int div_pos = group_num / 3;
+        int left_group = select_pivot_median(div_pos, group_start, group_num_MAX); // 左のグループ
+        int center_group = select_pivot_median(group_num - (div_pos << 1), group_start + div_pos, group_num_MAX); // 中央のグループ
+        int right_group = select_pivot_median(div_pos, group_start + group_num - div_pos, group_num_MAX); // 右のグループ
+
+        // グループそれぞれの中央値を比較
+        return suffixCompare(left_group, center_group) < 0 ?
+            (suffixCompare(center_group, right_group) < 0 ? center_group : (suffixCompare(right_group, left_group) < 0 ? left_group : right_group)):
+            (suffixCompare(right_group, center_group) < 0 ? center_group : (suffixCompare(left_group, right_group) < 0 ? left_group : right_group));
+    }
+
+    //ある要素数以下の時、挿入ソートを使うと言う発想は以下のサイト, プログラムを参照
+    // 参考 プログラム : https://github.com/D3879/2022informationQuantity/blob/main/s4/B223323/Frequencer.java
+    // 参考 Web : https://ufcpp.net/study/algorithm/sort_quick.html
+    // 参考 Web : https://www.techscore.com/blog/2014/12/06/comparison-of-sorting-algorithm/
+    //  → switch_el_count = 50 でもいい?
+
+    //  挿入ソートについて
+    //  参考 Web : https://www.codereading.com/algo_and_ds/algo/insertion_sort.html
+    private void insert_sort(int st, int end){
+        for(int check_pos = st; check_pos < end; check_pos++){
+
+            int insert_pos = check_pos;
+            while( ( insert_pos > 0 ) && ( suffixCompare( suffixArray[insert_pos], suffixArray[insert_pos-1] ) == -1 ) ){
+                int tmp;
+                tmp = suffixArray[ insert_pos ];
+                suffixArray[ insert_pos ] = suffixArray[ insert_pos-1 ];
+                suffixArray[ insert_pos-1 ] = tmp;
+                insert_pos--;
+            }
+
+        }
+    }
 
     public void buble_setSpace(byte []space) {
         // suffixArrayの前処理は、setSpaceで定義せよ。
@@ -506,6 +596,16 @@ public class Frequencer implements FrequencerInterface{
             frequencerObject.setSpace("CBA".getBytes());
             frequencerObject.printSuffixArray();
 
+            // Test A~Z
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("ABCDEFGHIJKLMNOPQRSTUVWXYZ".getBytes());
+            frequencerObject.printSuffixArray();
+
+            // Test Z~A
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("ZYXWVUTSRQPONMLKJIHGFEDCBA".getBytes());
+            frequencerObject.printSuffixArray();
+
             // Test HHH
             frequencerObject = new Frequencer();
             frequencerObject.setSpace("HHH".getBytes());
@@ -515,6 +615,11 @@ public class Frequencer implements FrequencerInterface{
             frequencerObject = new Frequencer();
             frequencerObject.setSpace("Ho Hi Ho".getBytes());
             frequencerObject.setTarget("Ho".getBytes());
+            frequencerObject.printSuffixArray();
+
+            // Test 「Hi Ho Hi Ho」 × 3
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Hi Ho Hi Ho Hi Ho Hi Ho Hi Ho Hi Ho".getBytes());
             frequencerObject.printSuffixArray();
 
             // Test Hi Ho Hi Ho
@@ -536,84 +641,84 @@ public class Frequencer implements FrequencerInterface{
             */
 
 
-//          // targetCompare Test
-//          int comp_result;
-//          /// o,i
-//            frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("o".getBytes());
-//            frequencerObject.setTarget("i".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length) ;
-//            if(1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// o,z
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("o".getBytes());
-//            frequencerObject.setTarget("z".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-//            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// o,o
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("o".getBytes());
-//            frequencerObject.setTarget("o".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// o,oo
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("o".getBytes());
-//            frequencerObject.setTarget("oo".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-//            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// Ho,Hi
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("Ho".getBytes());
-//            frequencerObject.setTarget("Hi".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-//            if(1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// Ho,Hz
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("Ho".getBytes());
-//            frequencerObject.setTarget("Hz".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-//            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// Ho,Ho
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("Ho".getBytes());
-//            frequencerObject.setTarget("Ho".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// Ho,"Ho "
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("Ho".getBytes());
-//            frequencerObject.setTarget("Ho ".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-//            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// Ho,H
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("Ho".getBytes());
-//            frequencerObject.setTarget("H".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// Ho Hi Ho,Ho
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("Ho Hi Ho".getBytes());
-//            frequencerObject.setTarget("Ho".getBytes());
-//          comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-//
-//          /// Ho [Hi] Ho,Hi
-//          frequencerObject = new Frequencer();
-//            frequencerObject.setSpace("Ho Hi Ho".getBytes());
-//            frequencerObject.setTarget("Hi".getBytes());
-//          comp_result = frequencerObject.targetCompare(3,0,frequencerObject.myTarget.length);
-//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+            // targetCompare Test
+            int comp_result;
+            /// o,i
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("o".getBytes());
+            frequencerObject.setTarget("i".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// o,z
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("o".getBytes());
+            frequencerObject.setTarget("z".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// o,o
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("o".getBytes());
+            frequencerObject.setTarget("o".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// o,oo
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("o".getBytes());
+            frequencerObject.setTarget("oo".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// Ho,Hi
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Ho".getBytes());
+            frequencerObject.setTarget("Hi".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// Ho,Hz
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Ho".getBytes());
+            frequencerObject.setTarget("Hz".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// Ho,Ho
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Ho".getBytes());
+            frequencerObject.setTarget("Ho".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// Ho,"Ho "
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Ho".getBytes());
+            frequencerObject.setTarget("Ho ".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// Ho,H
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Ho".getBytes());
+            frequencerObject.setTarget("H".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// Ho Hi Ho,Ho
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Ho Hi Ho".getBytes());
+            frequencerObject.setTarget("Ho".getBytes());
+            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+
+            /// Ho [Hi] Ho,Hi
+            frequencerObject = new Frequencer();
+            frequencerObject.setSpace("Ho Hi Ho".getBytes());
+            frequencerObject.setTarget("Hi".getBytes());
+            comp_result = frequencerObject.targetCompare(3,0,frequencerObject.myTarget.length);
+            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
 
 
             //

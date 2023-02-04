@@ -218,9 +218,15 @@ public class Frequencer implements FrequencerInterface{
         //
         // ここに比較のコードを書け
         //
-        return 0; // この行は変更しなければならない。
+        for(int l = 0; l < Math.min(k-j,mySpace.length-suffixArray[i]); l++) {
+            if(mySpace[suffixArray[i]+l] > myTarget[j+l]) {return 1;
+            } else if(mySpace[suffixArray[i]+l] < myTarget[j+l]) {return -1;
+            }
+        }
+        if(mySpace.length-i < k-j) { return -1;
+        } else {return 0; // この行は変更しなければならない。
+        }
     }
-
 
     private int subByteStartIndex(int start, int end) {
         //suffix arrayのなかで、目的の文字列の出現が始まる位置を求めるメソッド
@@ -252,7 +258,12 @@ public class Frequencer implements FrequencerInterface{
         //
         //　ここにコードを記述せよ
         //
-        return suffixArray.length; // この行は変更しなければならない、
+        int m;
+        for(m = 0; m < mySpace.length-1; m++) {
+            if(targetCompare(m, start, end) == 0) { break;
+            }
+        }
+        return m; // この行は変更しなければならない、
     }
 
     private int subByteEndIndex(int start, int end) {
@@ -284,7 +295,12 @@ public class Frequencer implements FrequencerInterface{
         //
         //　ここにコードを記述せよ
         //
-        return suffixArray.length; // この行は変更しなければならない、
+        int m;
+        for(m = mySpace.length-1; m > 0; m--) {
+	    if(targetCompare(m, start, end) == 0) { break;
+		}
+        }
+        return m+1; // この行は変更しなければならない、
     }
 
     // Suffix Arrayを使ったプログラムのホワイトテストは、

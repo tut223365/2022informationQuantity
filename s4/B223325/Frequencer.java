@@ -1,6 +1,8 @@
 package s4.B223325;  // ここは、かならず、自分の名前に変えよ。
 import java.lang.*;
 import java.util.Random;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import s4.specification.*;
 
@@ -34,9 +36,12 @@ public class Frequencer implements FrequencerInterface{
     boolean spaceReady = false;
     // ソートされる suffixArray
     int []  suffixArray; 
-    // ソートに利用するオブジェクト
+    // ソートに利用する
     Random rand = new Random();
-    // デバッグ用のオブジェクト
+    // 新しい手法用
+    int targetIndex = -1;
+    int spaceOffset = -1;
+    // デバッグ用
     boolean debugMode = true;
 
     // この関数は、デバッグに使ってもよい。mainから実行するときにも使ってよい。
@@ -86,32 +91,22 @@ public class Frequencer implements FrequencerInterface{
 
         boolean endi = (i < this.mySpace.length);
         boolean endj = (j < this.mySpace.length);
-        boolean skip = false;
-        int _i = i, _j = j, res=10;
         while (endi && endj) {
             if (this.mySpace[i] > this.mySpace[j]){
-                res = 1;
-                skip = true;
-                break;
+                return 1;
             } else if (this.mySpace[i] < this.mySpace[j]){
-                res = -1;
-                skip = true;
-                break;
+                return -1;
             }
             endi = (++i < this.mySpace.length);
             endj = (++j < this.mySpace.length);
         }
-        if (!skip) {
-            // if (!endi && !endj) {
-            if (!endi && !endj) {
-                res = 0;
-            } else if (!endi) {
-                res = -1;
-            } else { // else if (!endj)
-                res = 1;
-            }
+        if (!endi && !endj) {
+            return 0;
+        } else if (!endi) {
+            return -1;
+        } else { // else if (!endj)
+            return 1;
         }
-        return res;
     }
 
     public void setSpace(byte[] space) { 
@@ -123,32 +118,26 @@ public class Frequencer implements FrequencerInterface{
             spaceReady = false;
             return ;
         }
-        suffixArray = new int[space.length];
+        Integer[] _suffixArray = new Integer[space.length];
         for(int i = 0; i< space.length; i++) {
-            suffixArray[i] = i; 
+            _suffixArray[i] = i; 
         }
-
-        // 昇順のバブルソート
-        // int tmp, cmp;
-        // for (int i = 0; i < this.suffixArray.length-1; i++) {
-        //     for (int j = 1; j < this.suffixArray.length-i; j++){
-        //         cmp = this.suffixCompare(this.suffixArray[j-1], this.suffixArray[j]);
-        //         // 降順なら == -1
-        //         if (cmp == 1) {
-        //             tmp = this.suffixArray[j-1];
-        //             this.suffixArray[j-1] = this.suffixArray[j];
-        //             this.suffixArray[j] = tmp;
-        //         }
-        //     }
-        // }
         // 昇順のランダムクイックソート
         // スタック領域確保の処理がない分，（多少）高速
-        if (0 < suffixArray.length-1)
-            quickSort(0, suffixArray.length-1);
+        // quickSort(0, suffixArray.length-1);
+        
+        // 並列マージソート
+        Arrays.parallelSort(_suffixArray, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer a, Integer b){
+                return suffixCompare(a.intValue(), b.intValue());
+            }
+        });
+        suffixArray = new int[space.length];
+        for(int i = 0; i< space.length; i++) {
+            suffixArray[i] = _suffixArray[i].intValue(); 
+        }
 
-        // if (debugMode) {
-
-        // }
     }
 
     /**
@@ -285,6 +274,7 @@ public class Frequencer implements FrequencerInterface{
                 return -1;
             }
         }
+
         /** 
          * ここまで到達したということは，これまで比較した文字がすべて等しく， 
          * どちらかの文字列が終端まで達してしまったということ．
@@ -304,7 +294,7 @@ public class Frequencer implements FrequencerInterface{
      * @param end myTargetのend
      * @return
      */
-    private int subByteStartIndex(int start, int end) {
+    public int subByteStartIndex(int start, int end) {
         //
         /* Example of suffix created from "Hi Ho Hi Ho"
            0: Hi Ho
@@ -378,7 +368,7 @@ public class Frequencer implements FrequencerInterface{
      * @param end myTargetのend
      * @return
      */
-    private int subByteEndIndex(int start, int end) {
+    public int subByteEndIndex(int start, int end) {
         // The meaning of start and end is the same as subByteFrequency.
         /* Example of suffix created from "Hi Ho Hi Ho"
            0: Hi Ho                                    
@@ -463,6 +453,93 @@ public class Frequencer implements FrequencerInterface{
          */
     }
 
+    ////////////////////////////////////////////////////////
+    // FrequencyInterfaceをほとんど利用しない手法 start
+    ////////////////////////////////////////////////////////
+
+    /** subByteHogeIndexを呼び出す前に必ずこの関数を呼ぶ */
+    public void setTargetIndex(int ti){
+        targetIndex = ti;
+    }
+    /** subByteHogeIndexを呼び出す前に必ずこの関数を呼ぶ */
+    public void setSpaceOffset(int so){
+        spaceOffset = so;
+    }
+
+    /**
+     * 1文字比較．this.mySpace[i_suf] と this.myTarget[targetIndex] を比較する
+     * @param i suffixArray の index
+     * @return
+     */
+    private int targetCompare2(int i) {
+        int i_suf = suffixArray[i] + spaceOffset;
+        if ((i_suf >= mySpace.length) 
+         || (mySpace[i_suf] < myTarget[targetIndex])){
+            return -1;
+        } else if (mySpace[i_suf] > myTarget[targetIndex]){
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * suffix arrayのなかで、目的文字の出現が始まる位置を求めるメソッド
+     * @param ss space_start の略
+     * @param se space_end の略
+     * @return
+     */
+    public int subByteStartIndex2(int ss, int se) {
+        int c = (ss+se)/2;
+        int s = ss;
+        int e = se;
+        int cmp;
+        while (e-s > 1){
+            cmp = this.targetCompare2(c);
+            if (cmp == -1){
+                s = c + 1;
+                c = (e + c)/2;
+            }else { //else if ((cmp == 1) || (cmp == 0)) {
+                e = c - cmp + 1;
+                c = (s + c)/2;
+            }
+        }
+        cmp = this.targetCompare2(c);
+        return c-(cmp-1)/2;
+    }
+
+    /**
+     * suffix arrayのなかで、目的文字の出現が終わる位置を求めるメソッド
+     * @param ss space_start の略
+     * @param se space_end の略
+     * @return
+     */
+    public int subByteEndIndex2(int ss, int se) {
+        int c = (ss+se+1)/2;
+        int s = ss;
+        int e = se;
+        int cmp;
+        while (e-s > 1){
+            cmp = this.targetCompare2(c-1);
+            if (cmp == 1) {
+                e = c;
+                c = (s + c + 1)/2;
+            } else { // else if ((cmp == 0) || (cmp==-1)){
+                s = c;
+                c = (e + c + 1)/2;
+            }
+        }
+        cmp = this.targetCompare2(c-1);
+        return c-(cmp+1)/2;
+    }
+
+
+    ////////////////////////////////////////////////////////
+    // FrequencyInterfaceをほとんど利用しない手法 end
+    ////////////////////////////////////////////////////////
+    
+
+
     public static void test(String space, String target, int si, int ei){
         Frequencer frequencerObject = new Frequencer();
         frequencerObject.setSpace(space.getBytes());
@@ -545,4 +622,3 @@ public class Frequencer implements FrequencerInterface{
         // }
     }
 }
-

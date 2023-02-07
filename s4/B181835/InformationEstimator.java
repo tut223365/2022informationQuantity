@@ -57,8 +57,9 @@ public class InformationEstimator implements InformationEstimatorInterface {
     @Override
     public double estimation(){
         boolean [] partition = new boolean[myTarget.length+1];
+        double amount[];
         int np = 1<<(myTarget.length-1);
-        double value = Double.MAX_VALUE; // value = mininimum of each "value1".
+        double value = Double.MAX_VALUE; // value = mininimum of each "value1". ここをまず何とかして拡散を阻止する
 	if(debugMode) { showVariables(); }
         if(debugMode) { System.out.printf("np=%d length=%d ", np, +myTarget.length); }
 

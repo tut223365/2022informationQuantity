@@ -18,6 +18,7 @@ public interface InformationEstimatorInterface {
 
 public class InformationEstimator implements InformationEstimatorInterface {
     static boolean debugMode = false;
+    static boolean useSlow = false;
     // Code to test, *warning: This code is slow, and it lacks the required test
     byte[] myTarget; // data to compute its information quantity
     byte[] mySpace;  // Sample space to compute the probability
@@ -41,6 +42,10 @@ public class InformationEstimator implements InformationEstimatorInterface {
     // IQ: information quantity for a count, -log2(count/sizeof(space))
     double iq(int freq) {
         return  - Math.log10((double) freq / (double) mySpace.length)/ Math.log10((double) 2.0);
+    }
+
+    double iq2(double x) {
+        return  - Math.log10(x) / Math.log10((double)2.0);
     }
 
     @Override

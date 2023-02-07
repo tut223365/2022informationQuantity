@@ -92,6 +92,21 @@ public class TestCase {
 	    System.out.println("checking InformationEstimator");
 	    myObject = new InformationEstimator();
 	    myObject.setSpace("3210321001230123".getBytes());
+	    value = myObject.estimation();
+	    assert (value == 0.0d): "IQ for Target is not set should be 0.0. But it returns "+value;
+	    myObject.setTarget(new byte[0]);
+	    value = myObject.estimation();
+	    assert (value == 0.0d): "IQ for Target's length is 0 should be 0.0. But it returns "+value;
+	    myObject = new InformationEstimator();
+	    myObject.setTarget("3210321001230123".getBytes());
+	    value = myObject.estimation();
+	    assert (value == Double.MAX_VALUE): "IQ for Space is not set should be Double.MAX_VALUE(1.7976931348623157E308). But it returns "+value;
+		myObject.setSpace(new byte[0]);
+	    value = myObject.estimation();
+	    assert (value == Double.MAX_VALUE): "IQ for Space's length is 0 should be Double.MAX_VALUE(1.7976931348623157E308). But it returns "+value;
+		
+	    myObject = new InformationEstimator();
+	    myObject.setSpace("3210321001230123".getBytes());
 	    myObject.setTarget("0".getBytes());
 	    value = myObject.estimation();
 	    assert (value > 1.9999) && (2.0001 >value): "IQ for 0 in 3210321001230123 should be 2.0. But it returns "+value;
@@ -103,7 +118,13 @@ public class TestCase {
 	    assert (value > 2.9999) && (3.0001 >value): "IQ for 0123 in 3210321001230123 should be 3.0. But it returns "+value;
 	    myObject.setTarget("00".getBytes());
 	    value = myObject.estimation();
-	    assert (value > 3.9999) && (4.0001 >value): "IQ for 00 in 3210321001230123 should be 3.0. But it returns "+value;
+	    assert (value > 3.9999) && (4.0001 >value): "IQ for 00 in 3210321001230123 should be 4.0. But it returns "+value;
+	    myObject.setTarget("30".getBytes());
+	    value = myObject.estimation();
+	    assert (value > 3.9999) && (4.0001 >value): "IQ for 00 in 3210321001230123 should be 4.0. But it returns "+value;
+	    myObject.setTarget("333".getBytes());
+	    value = myObject.estimation();
+	    assert (value > 5.9999) && (6.0001 >value): "IQ for 00 in 3210321001230123 should be 6.0. But it returns "+value;		
 	}
 	catch(Exception e) {
 	    System.out.println("Exception occurred in InformationEstimator Object");

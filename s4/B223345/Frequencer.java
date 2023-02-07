@@ -1,4 +1,4 @@
-package s4.umemura;  // ここは、かならず、自分の名前に変えよ。
+package s4.B223345;  // ここは、かならず、自分の名前に変えよ。
 import java.lang.*;
 import s4.specification.*;
 
@@ -71,8 +71,71 @@ public class Frequencer implements FrequencerInterface{
         // if suffix_i = suffix_j, it returns 0;   
 
         // ここにコードを記述せよ 
-        //                                          
-        return 0; // この行は変更しなければいけない。 
+        //
+        if (i == j) return 0;
+        if (mySpace[i] == mySpace[j]){
+            int end = mySpace.length - 1;
+            if (i > j)
+                do
+                    if (i == end) return -1;
+                while(mySpace[++i] == mySpace[++j]);
+            else
+                do
+                    if (j == end) return 1;
+                while(mySpace[++i] == mySpace[++j]);
+        }
+        return mySpace[i] > mySpace[j] ? 1 : -1;
+    }
+
+    private final void QuickSort(int i0, int iN) {
+        int N = iN - i0;
+        if (N < 2) return;
+        int depth;
+        for (depth = 0; N > 0; N >>= 1) depth++;
+        QuickSort(i0, iN, depth);
+    }
+
+    private static final int threshold = 14;
+
+    private final void QuickSort(int i0, int iN, int d) {
+        int N = iN - i0;
+        if (N < threshold) { InsertionSort(i0, iN); return; }
+        int pivot = pseudoMedian(N, i0, d);
+        int i = i0, j = iN - 1;
+        for (;;) {
+            while (suffixCompare(suffixArray[i], pivot) < 0) i++;
+            while (suffixCompare(pivot, suffixArray[j]) < 0) j--;
+            if (i >= j) break;
+            int tmp = suffixArray[i]; suffixArray[i] = suffixArray[j]; suffixArray[j] = tmp;
+            i++; j--;
+        }
+        j++;
+        if (i - i0 > 1) QuickSort(i0, i, d);
+        if (iN - j > 1) QuickSort(j, iN, d);
+    }
+
+    private final int pseudoMedian(int n, int i, int d) {
+        if (n <= d) return suffixArray[i + (n >> 1)];
+        int m = n / 3;
+        int x = pseudoMedian(m, i, d);
+        int y = pseudoMedian(n - (m << 1), i + m, d);
+        int z = pseudoMedian(m, i + n - m, d);
+        return suffixCompare(x, y) < 0 ?
+            (suffixCompare(y, z) < 0 ? y : (suffixCompare(z, x) < 0 ? x : z)) :
+            (suffixCompare(z, y) < 0 ? y : (suffixCompare(x, z) < 0 ? x : z));
+    }
+
+    private final void InsertionSort(int i0, int iN) {
+        if (iN - i0 < 2) return;
+        for (int i = i0 + 1; i < iN; i++) {
+            int tmp = suffixArray[i];
+            int j = i, k = i;
+            if (suffixCompare(tmp, suffixArray[i0]) < 0)
+                while (i0 < j) { suffixArray[j] = suffixArray[--k]; j = k; }
+            else
+                while (suffixCompare(tmp, suffixArray[--k]) < 0) { suffixArray[j] = suffixArray[k]; j = k; }
+            suffixArray[j] = tmp;
+        }
     }
 
     public void setSpace(byte []space) { 
@@ -100,6 +163,7 @@ public class Frequencer implements FrequencerInterface{
         //   suffixArray[ 1]= 1:BA
         //   suffixArray[ 2]= 0:CBA
         // のようになるべきである。
+        QuickSort(0, space.length);
     }
 
     // ここから始まり、指定する範囲までは変更してはならないコードである。
@@ -140,6 +204,19 @@ public class Frequencer implements FrequencerInterface{
     }
     // 変更してはいけないコードはここまで。
 
+    public final int slowSubByteFrequency(int start, int end) {
+        int spaceLength = mySpace.length;                      
+        int count = 0;                                        
+        for(int offset = 0; offset< spaceLength - (end - start); offset++) {
+            boolean abort = false; 
+            for(int i = 0; i< (end - start); i++) {
+                if(myTarget[start+i] != mySpace[offset+i]) { abort = true; break; }
+            }
+            if(abort == false) { count++; }
+        }
+        return count;
+    }
+
     private int targetCompare(int i, int j, int k) {
         // subByteStartIndexとsubByteEndIndexを定義するときに使う比較関数。
         // 次のように定義せよ。
@@ -176,7 +253,19 @@ public class Frequencer implements FrequencerInterface{
         //
         // ここに比較のコードを書け 
         //
-        return 0; // この行は変更しなければならない。
+        if (mySpace[i] == myTarget[j])
+            if (mySpace.length - i < k - j) {
+                int end = mySpace.length - 1;
+                do
+                    if (i == end) return -1;
+                while (mySpace[++i] == myTarget[++j]);
+            } else { //Targetが短い
+                k--;
+                do
+                    if (k == j) return 0;
+                while (mySpace[++i] == myTarget[++j]);
+            }
+        return mySpace[i] > myTarget[j] ? 1 : -1;
     }
 
 
@@ -210,7 +299,17 @@ public class Frequencer implements FrequencerInterface{
         //                                                                          
         // ここにコードを記述せよ。                                                 
         //                                                                         
-        return suffixArray.length; //このコードは変更しなければならない。          
+        int s = 0, e = suffixArray.length, p;
+        do {
+            p = (s + e) >> 1; //(s+e)/2 -> pの定義域[s,e-1]
+            if (targetCompare(suffixArray[p], start, end) == -1) {
+                if (s != p) s = p;
+                else return e;
+            } else {
+                e = p;
+            }
+        } while(s != e);
+        return s;      
     }
 
     private int subByteEndIndex(int start, int end) {
@@ -242,7 +341,14 @@ public class Frequencer implements FrequencerInterface{
         //                                                                   
         //　ここにコードを記述せよ                                           
         //                                                                   
-        return suffixArray.length; // この行は変更しなければならない、       
+        int s = 0, e = suffixArray.length, p;
+        do {
+            p = (s + e) >> 1; //(s+e)/2 -> pの定義域[s,e-1]
+            if (targetCompare(suffixArray[p], start, end) == 1) e = p;
+            else if (s != p) s = p;
+            else return e; //更新できないとき
+        } while(s != e);
+        return s; 
     }
 
 
@@ -293,9 +399,23 @@ public class Frequencer implements FrequencerInterface{
             int result = frequencerObject.frequency();
             System.out.print("Freq = "+ result+" ");
             if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+            frequencerObject.setTarget("Hi Ho Hi".getBytes());
+            result = frequencerObject.subByteStartIndex(0, 2); //Hi
+            if(3 == result) { System.out.println("OK"); } else {System.out.println("WRONG" ); }
+            result = frequencerObject.subByteStartIndex(0, 1); //H
+            if(3 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+            result = frequencerObject.subByteStartIndex(0, 8); //Hi Ho Hi
+            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+            result = frequencerObject.subByteEndIndex(0, 2); //Hi
+            if(5 == result) { System.out.println("OK"); } else {System.out.println("WRONG" ); }
+            result = frequencerObject.subByteEndIndex(0, 1); //H
+            if(7 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+            result = frequencerObject.subByteEndIndex(0, 8); //Hi Ho Hi
+            if(5 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
         }
         catch(Exception e) {
             System.out.println("STOP");
         }
     }
 }
+//参考：https://github.com/D3879/2022informationQuantity/blob/main/s4/B223323/Frequencer.java

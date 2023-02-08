@@ -1,6 +1,11 @@
 package s4.B223312;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
+
 import s4.specification.*;
 
 /* What is imported from s4.specification
@@ -45,10 +50,11 @@ public class InformationEstimator implements InformationEstimatorInterface {
     }
 
     public double estimation() {
+        return new FastInformationEstimator(mySpace, myTarget).estimation();
+    }
+    public double slowEstimation() {
         if (myTarget == null || myTarget.length == 0) return 0.0;
         if (mySpace == null || mySpace.length == 0) return Double.MAX_VALUE;
-
-        int targetLength = myTarget.length;
 
         // 動的計画法で求める
         // 配列 dp[i] := target[0; i] までの解
@@ -56,8 +62,9 @@ public class InformationEstimator implements InformationEstimatorInterface {
         // 最終的な解 = dp[targetLength]
         // iq の計算に \Theta(N\log(N))
         // dp 配列の計算に \Theta(N^2) かかるので
-        // 全体の計算量は \Theta(N^3\log(N))
+        // 全体の計算量は \Theta(N^3\log(N)) 
 
+        int targetLength = myTarget.length;
         double[] dp = new double[targetLength + 1];
         dp[0] = 0;
         for (int i = 1; i <= targetLength; ++i) dp[i] = Double.MAX_VALUE;
@@ -65,16 +72,61 @@ public class InformationEstimator implements InformationEstimatorInterface {
         for (int i = 0; i < targetLength; ++i) {
             for (int j = i + 1; j <= targetLength; ++j) {
                 myFrequencer.setTarget(subBytes(myTarget, i, j));
-                double value = dp[i] + iq(myFrequencer.frequency());
+                int freq = myFrequencer.frequency();
+                if (freq == 0) continue;
 
-                if (value < dp[j]) dp[j] = value;
+                double value = dp[i] + iq(freq);
+                dp[j] = Math.min(dp[j], value);
             }
         }
 
         return dp[targetLength];
     }
-
     public static void main(String[] args) {
+        boolean debugFlag = false;
+
+        if (debugFlag) {
+            double value;
+            value = new FastInformationEstimator("3210321001230123".getBytes(), "0".getBytes()).estimation();
+            System.out.println(">0 " + value);
+
+            value = new FastInformationEstimator("3210321001230123".getBytes(), "01".getBytes()).estimation();
+            System.out.println(">01 " + value);
+
+            value = new FastInformationEstimator("3210321001230123".getBytes(), "0123".getBytes()).estimation();
+            System.out.println(">0123 " + value);
+
+            value = new FastInformationEstimator("3210321001230123".getBytes(), "00".getBytes()).estimation();
+            System.out.println(">00 " + value);
+        } else {
+            FastInformationEstimator estimator;
+            try {
+                File spaceFile = new File("/home/okada/2022informationQuantity/s4/data/space_100k.txt");
+                File targetFile = new File("/home/okada/2022informationQuantity/s4/data/target_10k.txt");
+            
+                byte[] space = Files.readAllBytes(spaceFile.toPath());
+                byte[] target = Files.readAllBytes(targetFile.toPath());
+    
+                estimator = new FastInformationEstimator(space, target);
+                double value = estimator.estimation();
+                System.out.println("FastEstimator = " + value);
+
+                boolean useSlowEstimator = false;
+                if (useSlowEstimator) {
+                    InformationEstimator slowEstimator = new InformationEstimator();
+                    slowEstimator.setSpace(space);
+                    slowEstimator.setTarget(target);
+                    value = slowEstimator.slowEstimation();
+                    System.out.println("SlowEstimator = " + value);
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println(e);
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+        }
+
+        /*
         InformationEstimator myObject;
         double value;
         myObject = new InformationEstimator();
@@ -91,5 +143,6 @@ public class InformationEstimator implements InformationEstimatorInterface {
         myObject.setTarget("00".getBytes());
         value = myObject.estimation();
         System.out.println(">00 " + value);
+        */
     }
 }

@@ -117,7 +117,8 @@ public class Frequencer implements FrequencerInterface{
 
         
         //my_quick_sort_core( 0, mySpace.length-1 );
-        quick_sort( 0, mySpace.length );
+        //quick_sort( 0, mySpace.length );
+        merge_sort( 0, mySpace.length );
 
     }
 
@@ -236,6 +237,7 @@ public class Frequencer implements FrequencerInterface{
         }
     }
 
+
     public void buble_setSpace(byte []space) {
         // suffixArrayの前処理は、setSpaceで定義せよ。
         mySpace = space; if(mySpace.length>0) spaceReady = true;
@@ -277,6 +279,63 @@ public class Frequencer implements FrequencerInterface{
 
     }
 
+    // 参考Web : https://hogehogeit.com/java/【図解あり】javaでマージソートを実装してみた/
+    private void merge(int left, int right, int mid){
+        int left_n = mid - left;
+        int right_n = right - mid;
+
+        //System.out.printf("left %d, right %d\n", left, right);
+        //System.out.printf("left_n %d, right_n %d\n", left_n, right_n);
+        // 統合する範囲をコピー
+        int [] left_array = new int[left_n];
+        int [] right_array = new int[right_n];
+        for( int i = 0; i < left_n; i++ ){
+            left_array[i] = suffixArray[left + i];
+        }
+        for( int i = 0; i < right_n; i++ ){
+            right_array[i] = suffixArray[mid + i];
+        }
+
+        // 統合
+        int left_pos = 0;
+        int right_pos = 0;
+        for( int i = left; i < right; i++ ){
+            //System.out.printf("left_pos %d, right_pos %d\n", left_pos, right_pos);
+            if( left_pos >= left_n ){
+                while( right_pos < right_n ){
+                    suffixArray[i] = right_array[right_pos];
+                    i++;
+                    right_pos++;
+                }
+                return;
+            }
+            if( right_pos >= right_n ){
+                while( left_pos < left_n ){
+                    suffixArray[i] = left_array[left_pos];
+                    i++;
+                    left_pos++;
+                }
+                return;
+            }
+            if( suffixCompare( left_array[left_pos], right_array[right_pos] ) == -1){ // 左の方が辞書順で早い
+                suffixArray[i] = left_array[left_pos];
+                left_pos++;
+            }else{
+                suffixArray[i] = right_array[right_pos];
+                right_pos++;
+            }
+        }
+    }
+
+    private void merge_sort(int left, int right){
+        if( (right - left) > 1 ){
+            int mid = ( left + right ) / 2;
+
+            merge_sort(left, mid);
+            merge_sort(mid, right);
+            merge(left, right, mid);
+        }
+    }
     // ここから始まり、指定する範囲までは変更してはならないコードである。
 
     public void setTarget(byte [] target) {
@@ -413,7 +472,6 @@ public class Frequencer implements FrequencerInterface{
         // ここにコードを記述せよ。
         //
         int suffix_i;
-        int comp_result;
         int s,e;
         int pivot;
 
@@ -421,12 +479,10 @@ public class Frequencer implements FrequencerInterface{
         e = mySpace.length;
         pivot = 0;
         while( s < e ){
-            pivot = s + (e - s)/2;
+            pivot = (s + e) >> 1;
             suffix_i = suffixArray[ pivot ];
-            comp_result = targetCompare( suffix_i, start, end );
-            if( comp_result == 1 ) e = pivot;
-            else if( comp_result == -1 ) s = pivot+1;
-            else e = pivot;
+            if( targetCompare( suffix_i, start, end ) == -1 ) s = pivot+1; // targetの方が辞書順が遅い
+            else e = pivot; // targetの方が辞書順が早い. または, 同じ
         }
         //System.out.printf("s %d, pivot %d, e %d\n", s, pivot, e);
         return s;
@@ -510,17 +566,14 @@ public class Frequencer implements FrequencerInterface{
         int comp_result;
         int s,e;
         int pivot;
-        int ct;
 
         s = 0;
         e = mySpace.length;
         pivot = 0;
         while( s < e ){
-            pivot = s + (e - s)/2;
+            pivot = (s + e) >> 1;
             suffix_i = suffixArray[ pivot ];
-            comp_result = targetCompare( suffix_i, start, end );
-            if( comp_result == 1 ) e = pivot;
-            else if( comp_result == -1 ) s = pivot+1;
+            if( targetCompare( suffix_i, start, end ) == 1 ) e = pivot;
             else s = pivot+1;
         }
         //System.out.printf("s %d, pivot %d, e %d\n", s, pivot, e);
@@ -641,161 +694,161 @@ public class Frequencer implements FrequencerInterface{
             */
 
 
-            // targetCompare Test
-            int comp_result;
-            /// o,i
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("o".getBytes());
-            frequencerObject.setTarget("i".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// o,z
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("o".getBytes());
-            frequencerObject.setTarget("z".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// o,o
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("o".getBytes());
-            frequencerObject.setTarget("o".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// o,oo
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("o".getBytes());
-            frequencerObject.setTarget("oo".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// Ho,Hi
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Ho".getBytes());
-            frequencerObject.setTarget("Hi".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// Ho,Hz
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Ho".getBytes());
-            frequencerObject.setTarget("Hz".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// Ho,Ho
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Ho".getBytes());
-            frequencerObject.setTarget("Ho".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// Ho,"Ho "
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Ho".getBytes());
-            frequencerObject.setTarget("Ho ".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// Ho,H
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Ho".getBytes());
-            frequencerObject.setTarget("H".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// Ho Hi Ho,Ho
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Ho Hi Ho".getBytes());
-            frequencerObject.setTarget("Ho".getBytes());
-            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
-            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// Ho [Hi] Ho,Hi
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Ho Hi Ho".getBytes());
-            frequencerObject.setTarget("Hi".getBytes());
-            comp_result = frequencerObject.targetCompare(3,0,frequencerObject.myTarget.length);
-            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//            // targetCompare Test
+//            int comp_result;
+//            /// o,i
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("o".getBytes());
+//            frequencerObject.setTarget("i".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// o,z
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("o".getBytes());
+//            frequencerObject.setTarget("z".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// o,o
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("o".getBytes());
+//            frequencerObject.setTarget("o".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// o,oo
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("o".getBytes());
+//            frequencerObject.setTarget("oo".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// Ho,Hi
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Ho".getBytes());
+//            frequencerObject.setTarget("Hi".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// Ho,Hz
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Ho".getBytes());
+//            frequencerObject.setTarget("Hz".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// Ho,Ho
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Ho".getBytes());
+//            frequencerObject.setTarget("Ho".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// Ho,"Ho "
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Ho".getBytes());
+//            frequencerObject.setTarget("Ho ".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(-1 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// Ho,H
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Ho".getBytes());
+//            frequencerObject.setTarget("H".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// Ho Hi Ho,Ho
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Ho Hi Ho".getBytes());
+//            frequencerObject.setTarget("Ho".getBytes());
+//            comp_result = frequencerObject.targetCompare(0,0,frequencerObject.myTarget.length);
+//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// Ho [Hi] Ho,Hi
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Ho Hi Ho".getBytes());
+//            frequencerObject.setTarget("Hi".getBytes());
+//            comp_result = frequencerObject.targetCompare(3,0,frequencerObject.myTarget.length);
+//            if(0 == comp_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
 
 
             //
             // ****  Please write code to check subByteStartIndex, and subByteEndIndex
 
-            //subByteStartIndex, Test
-            int start_result;
-            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 0~2
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-            frequencerObject.printSuffixArray();
-            frequencerObject.setTarget("Ho Ho Ho Ho".getBytes());
-            start_result = frequencerObject.subByteStartIndex(0,2);
-            if(5 == start_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 0~3
-            start_result = frequencerObject.subByteStartIndex(0,3);
-            if(6 == start_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 2~5
-            start_result = frequencerObject.subByteStartIndex(2,5);
-            if(1 == start_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 1~3
-            start_result = frequencerObject.subByteStartIndex(1,3);
-            if(10 == start_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-
-            //subByteEndIndex, Test
-            int end_result;
-            /// mySpace 「Hi Ho Hi Ho」, myTarget 「High_and_Low」, search 0~2
-            frequencerObject.setTarget("High_and_Low".getBytes());
-            end_result = frequencerObject.subByteEndIndex(0,2);
-            if(5 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// mySpace 「Hi Ho Hi Ho」, myTarget 「High_and_Low」, search 0~2
-            end_result = frequencerObject.subByteEndIndex(1,2);
-            if(9 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// mySpace 「Hi Ho Hi Ho」, myTarget 「High_and_Low」, search 11~12
-            end_result = frequencerObject.subByteEndIndex(10,11);
-            if(11 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 11~12
-            frequencerObject.setTarget("Ho Ho Ho Ho".getBytes());
-            end_result = frequencerObject.subByteEndIndex(0,2);
-            if(7 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-
-            // Frequency, Test
-            // mySpace … Hi Ho Hi Ho, myTarget … H
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-
-            frequencerObject.setTarget("H".getBytes());
-
-            int result = frequencerObject.frequency();
-            System.out.print("Freq = "+ result+" ");
-            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-
-            // Frequency vs slowsubByteFrequency
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-            frequencerObject.printSuffixArray();
-
-
-            /// Test mySpace … Hi Ho Hi Ho, myTarget … H
-            frequencerObject.setTarget("H".getBytes());
-
-            int Freq_result = frequencerObject.frequency();
-            System.out.print("Freq = "+ Freq_result+" ");
-            if(4 == Freq_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
-
-            int slow_result = frequencerObject.slowsubByteFrequency(0, frequencerObject.myTarget.length);
-            System.out.print("Freq = "+ slow_result+" ");
-            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//            //subByteStartIndex, Test
+//            int start_result;
+//            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 0~2
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+//            frequencerObject.printSuffixArray();
+//            frequencerObject.setTarget("Ho Ho Ho Ho".getBytes());
+//            start_result = frequencerObject.subByteStartIndex(0,2);
+//            if(5 == start_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 0~3
+//            start_result = frequencerObject.subByteStartIndex(0,3);
+//            if(6 == start_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 2~5
+//            start_result = frequencerObject.subByteStartIndex(2,5);
+//            if(1 == start_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 1~3
+//            start_result = frequencerObject.subByteStartIndex(1,3);
+//            if(10 == start_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//
+//            //subByteEndIndex, Test
+//            int end_result;
+//            /// mySpace 「Hi Ho Hi Ho」, myTarget 「High_and_Low」, search 0~2
+//            frequencerObject.setTarget("High_and_Low".getBytes());
+//            end_result = frequencerObject.subByteEndIndex(0,2);
+//            if(5 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// mySpace 「Hi Ho Hi Ho」, myTarget 「High_and_Low」, search 0~2
+//            end_result = frequencerObject.subByteEndIndex(1,2);
+//            if(9 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// mySpace 「Hi Ho Hi Ho」, myTarget 「High_and_Low」, search 11~12
+//            end_result = frequencerObject.subByteEndIndex(10,11);
+//            if(11 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            /// mySpace 「Hi Ho Hi Ho」, myTarget 「Ho Ho Ho Ho」, search 11~12
+//            frequencerObject.setTarget("Ho Ho Ho Ho".getBytes());
+//            end_result = frequencerObject.subByteEndIndex(0,2);
+//            if(7 == end_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//
+//            // Frequency, Test
+//            // mySpace … Hi Ho Hi Ho, myTarget … H
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+//
+//            frequencerObject.setTarget("H".getBytes());
+//
+//            int result = frequencerObject.frequency();
+//            System.out.print("Freq = "+ result+" ");
+//            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//
+//            // Frequency vs slowsubByteFrequency
+//            frequencerObject = new Frequencer();
+//            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+//            frequencerObject.printSuffixArray();
+//
+//
+//            /// Test mySpace … Hi Ho Hi Ho, myTarget … H
+//            frequencerObject.setTarget("H".getBytes());
+//
+//            int Freq_result = frequencerObject.frequency();
+//            System.out.print("Freq = "+ Freq_result+" ");
+//            if(4 == Freq_result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
+//
+//            int slow_result = frequencerObject.slowsubByteFrequency(0, frequencerObject.myTarget.length);
+//            System.out.print("Freq = "+ slow_result+" ");
+//            if(4 == result) { System.out.println("OK"); } else {System.out.println("WRONG"); }
 
         }
         catch(Exception e) {

@@ -102,20 +102,134 @@ public class TestCase {
         myObject.setTarget("".getBytes());
         value = myObject.estimation();
 
+        /*
         String data_path = "/Users/yasujimayuu/TUT_3/後期/Computer_Programming_4/2022informationQuantity/s4/data";
-        Path file = Paths.get(data_path + "/space_100k.txt");
-        byte[] space = Files.readAllBytes(file);
+	    Path file;
+	    byte[] space;
+	    byte[] target;
+        long startTime;
+	    long endTime;
+
+	    // (space_100k.txt, target_10b.txt)
+        file = Paths.get(data_path + "/space_100k.txt");
+        space = Files.readAllBytes(file);
 
         file = Paths.get(data_path + "/target_10b.txt");
-        byte[] target = Files.readAllBytes(file);
+        target = Files.readAllBytes(file);
+	    myObject = new InformationEstimator();
+	startTime = System.nanoTime(); // 開始時間 インデントはわざとです
+	    myObject.setSpace(space);
+	    myObject.setTarget(target);
+	    value = myObject.estimation(); // 終了時間 インデントはわざとです
+    endTime = System.nanoTime();
+
+	    System.out.println("(space_100k.txt, target_10b.txt)");
+        System.out.println("処理時間：" + (endTime - startTime)/ 1000000f + " ms");
+
+
+	    // (rand_1k.txt, target_10b.txt)
+	    file = Paths.get(data_path + "/rand_1k.txt");
+        space = Files.readAllBytes(file);
+
+        file = Paths.get(data_path + "/target_10b.txt");
+        target = Files.readAllBytes(file);
 
 	    myObject = new InformationEstimator();
-        long startTime = System.currentTimeMillis();
+	startTime = System.nanoTime(); 
 	    myObject.setSpace(space);
 	    myObject.setTarget(target);
 	    value = myObject.estimation();
-        long endTime = System.currentTimeMillis();
-        System.out.println("処理時間：" + (endTime - startTime) + " ms");
+    endTime = System.nanoTime();
+
+	    System.out.println("(rand_1k.txt, target_10b.txt)");
+        System.out.println("処理時間：" + (endTime - startTime)/ 1000000f + " ms");
+
+
+	    // (rand_1k.txt, target_16b.txt)
+        file = Paths.get(data_path + "/rand_1k.txt");
+        space = Files.readAllBytes(file);
+
+        file = Paths.get(data_path + "/target_16b.txt");
+        target = Files.readAllBytes(file);
+
+	    myObject = new InformationEstimator();
+	startTime = System.nanoTime(); 
+	    myObject.setSpace(space);
+	    myObject.setTarget(target);
+	    value = myObject.estimation();
+    endTime = System.nanoTime();
+
+	    System.out.println("(rand_1k.txt, target_16b.txt)");
+        System.out.println("処理時間：" + (endTime - startTime)/ 1000000f + " ms");
+
+	    // (rand_10k.txt, target_16b.txt)
+        file = Paths.get(data_path + "/rand_10k.txt");
+        space = Files.readAllBytes(file);
+
+        file = Paths.get(data_path + "/target_16b.txt");
+        target = Files.readAllBytes(file);
+
+	    myObject = new InformationEstimator();
+	startTime = System.nanoTime(); 
+	    myObject.setSpace(space);
+	    myObject.setTarget(target);
+	    value = myObject.estimation();
+    endTime = System.nanoTime();
+
+	    System.out.println("(rand_10k.txt, target_16b.txt)");
+        System.out.println("処理時間：" + (endTime - startTime)/ 1000000f + " ms");
+
+	    // (rand_100k.txt, target_16b.txt)
+        file = Paths.get(data_path + "/rand_100k.txt");
+        space = Files.readAllBytes(file);
+
+        file = Paths.get(data_path + "/target_16b.txt");
+        target = Files.readAllBytes(file);
+
+	    myObject = new InformationEstimator();
+	startTime = System.nanoTime(); 
+	    myObject.setSpace(space);
+	    myObject.setTarget(target);
+	    value = myObject.estimation();
+    endTime = System.nanoTime();
+
+	    System.out.println("(rand_100k.txt, target_16b.txt)");
+        System.out.println("処理時間：" + (endTime - startTime)/ 1000000f + " ms");
+
+	    // (space_100k.txt, target_16b.txt)
+        file = Paths.get(data_path + "/space_100k.txt");
+        space = Files.readAllBytes(file);
+
+        file = Paths.get(data_path + "/target_16b.txt");
+        target = Files.readAllBytes(file);
+
+	    myObject = new InformationEstimator();
+	startTime = System.nanoTime(); 
+	    myObject.setSpace(space);
+	    myObject.setTarget(target);
+	    value = myObject.estimation();
+    endTime = System.nanoTime();
+
+	    System.out.println("(space_100k.txt, target_16b.txt)");
+        System.out.println("処理時間：" + (endTime - startTime)/ 1000000f + " ms");
+
+	    // (space_100k.txt, target_1k.txt)
+        file = Paths.get(data_path + "/space_100k.txt");
+        space = Files.readAllBytes(file);
+
+        file = Paths.get(data_path + "/target_1k.txt");
+        target = Files.readAllBytes(file);
+
+	    myObject = new InformationEstimator();
+	startTime = System.nanoTime(); 
+	    myObject.setSpace(space);
+	    myObject.setTarget(target);
+	    value = myObject.estimation();
+    endTime = System.nanoTime();
+
+	    System.out.println("(space_100k.txt, target_1k.txt)");
+        System.out.println("処理時間：" + (endTime - startTime)/ 1000000f + " ms");
+        */
 
 	}
 	catch(Exception e) {

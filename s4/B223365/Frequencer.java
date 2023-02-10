@@ -1,5 +1,7 @@
 package s4.B223365;  // ここは、かならず、自分の名前に変えよ。 import java.lang.*;
 import s4.specification.*;
+import java.util.Arrays;
+import java.util.Comparator;
 
 
 /*package s4.specification;
@@ -89,16 +91,60 @@ public class Frequencer implements FrequencerInterface{
         return 0;
     }
 
+    // 実行場所 : xdev.edu.tut.ac.jp
+    // 自作マージソート 結果
+    // (space_100k.txt, target_10b.txt)
+    // 処理時間：8830.667 ms
+    // (rand_1k.txt, target_10b.txt)
+    // 処理時間：0.483211 ms
+    // (rand_1k.txt, target_16b.txt)
+    // 処理時間：0.601195 ms
+    // (rand_10k.txt, target_16b.txt)
+    // 処理時間：3.829643 ms
+    // (rand_100k.txt, target_16b.txt)
+    // 処理時間：44.101784 ms
+    // (space_100k.txt, target_16b.txt)
+    // 処理時間：7666.9526 ms
+    // (space_100k.txt, target_1k.txt)
+    // 処理時間：14282.006 ms
+
+    // 実行場所 : xdev.edu.tut.ac.jp
+    // 並行マージソート 結果
+    // (space_100k.txt, target_10b.txt)
+    // 処理時間：1785.3204 ms
+    // (rand_1k.txt, target_10b.txt)
+    // 処理時間：0.698267 ms
+    // (rand_1k.txt, target_16b.txt)
+    // 処理時間：0.724367 ms
+    // (rand_10k.txt, target_16b.txt)
+    // 処理時間：4.851355 ms
+    // (rand_100k.txt, target_16b.txt)
+    // 処理時間：59.151924 ms
+    // (space_100k.txt, target_16b.txt)
+    // 処理時間：2030.2957 ms
+    // (space_100k.txt, target_1k.txt)
+    // 処理時間：8206.946 ms
+
+    // クイックソートからマージソートに変更した理由
+    // 乱数を使用してピボットを選ぶ方式を取っていた, B223325のR20230129P.txtの結果を確認したところ非常に実行速度が遅かったため, マージソートに切り替えました. 
+    // また, B223325の最新のプログラムでは並列マージソートを使用しています.
     public void setSpace(byte []space) {
         // suffixArrayの前処理は、setSpaceで定義せよ。
         mySpace = space; if(mySpace.length>0) spaceReady = true;
-        // First, create unsorted suffix array.
-        suffixArray = new int[space.length];
-        // put all suffixes in suffixArray.
-        for(int i = 0; i< space.length; i++) {
+
+        // マージソードの準備
+        /*suffixArray = new int[space.length];
+        for(Integer i = 0; i< space.length; i++) {
             suffixArray[i] = i; // Please note that each suffix is expressed by one integer.
         }
-        //
+	    */
+
+        // 並列マージソートの準備
+        // Int型とIneger(クラス)は違うもの
+        Integer[] _suffixArray = new Integer[space.length];
+        for(Integer i = 0; i< space.length; i++) {
+            _suffixArray[i] = i;
+        }
         // ここに、int suffixArrayをソートするコードを書け。
         // もし、mySpace が"ABC"ならば、
         // suffixArray = { 0, 1, 2} となること求められる。
@@ -118,8 +164,19 @@ public class Frequencer implements FrequencerInterface{
         
         //my_quick_sort_core( 0, mySpace.length-1 );
         //quick_sort( 0, mySpace.length );
-        merge_sort( 0, mySpace.length );
+        //merge_sort( 0, mySpace.length );
 
+        // 並列マージソート
+        Arrays.parallelSort(_suffixArray, new Comparator<Integer>() {
+	        @Override
+	        public int compare(Integer a, Integer b){
+		        return suffixCompare(a.intValue(), b.intValue());
+	        }
+        });
+        suffixArray = new int[space.length];
+        for(int i = 0; i< space.length; i++) {
+	        suffixArray[i] = _suffixArray[i].intValue();
+	    }
     }
 
     // クイックソート
@@ -237,48 +294,6 @@ public class Frequencer implements FrequencerInterface{
         }
     }
 
-
-    public void buble_setSpace(byte []space) {
-        // suffixArrayの前処理は、setSpaceで定義せよ。
-        mySpace = space; if(mySpace.length>0) spaceReady = true;
-        // First, create unsorted suffix array.
-        suffixArray = new int[space.length];
-        // put all suffixes in suffixArray.
-        for(int i = 0; i< space.length; i++) {
-            suffixArray[i] = i; // Please note that each suffix is expressed by one integer.
-        }
-        //
-        // ここに、int suffixArrayをソートするコードを書け。
-        // もし、mySpace が"ABC"ならば、
-        // suffixArray = { 0, 1, 2} となること求められる。
-        // このとき、printSuffixArrayを実行すると
-        //   suffixArray[ 0]= 0:ABC
-        //   suffixArray[ 1]= 1:BC
-        //   suffixArray[ 2]= 2:C
-        // のようになるべきである。
-        // もし、mySpace が"CBA"ならば
-        // suffixArray = { 2, 1, 0} となることが求めらる。
-        // このとき、printSuffixArrayを実行すると
-        //   suffixArray[ 0]= 2:A
-        //   suffixArray[ 1]= 1:BA
-        //   suffixArray[ 2]= 0:CBA
-        // のようになるべきである。
-
-        // バブルソート
-        int che = 0;
-        for(int i=0; i < mySpace.length - 1; i++){
-            for(int j=i+1; j < mySpace.length; j++){
-                if( suffixCompare( suffixArray[i], suffixArray[j] ) == 1){
-                    int tmp;
-                    tmp = suffixArray[i];
-                    suffixArray[i] = suffixArray[j];
-                    suffixArray[j] = tmp;
-                }
-            }
-        }
-
-    }
-
     // 参考Web : https://hogehogeit.com/java/【図解あり】javaでマージソートを実装してみた/
     private void merge(int left, int right, int mid){
         int left_n = mid - left;
@@ -336,6 +351,49 @@ public class Frequencer implements FrequencerInterface{
             merge(left, right, mid);
         }
     }
+
+    public void buble_setSpace(byte []space) {
+        // suffixArrayの前処理は、setSpaceで定義せよ。
+        mySpace = space; if(mySpace.length>0) spaceReady = true;
+        // First, create unsorted suffix array.
+        suffixArray = new int[space.length];
+        // put all suffixes in suffixArray.
+        for(int i = 0; i< space.length; i++) {
+            suffixArray[i] = i; // Please note that each suffix is expressed by one integer.
+        }
+        //
+        // ここに、int suffixArrayをソートするコードを書け。
+        // もし、mySpace が"ABC"ならば、
+        // suffixArray = { 0, 1, 2} となること求められる。
+        // このとき、printSuffixArrayを実行すると
+        //   suffixArray[ 0]= 0:ABC
+        //   suffixArray[ 1]= 1:BC
+        //   suffixArray[ 2]= 2:C
+        // のようになるべきである。
+        // もし、mySpace が"CBA"ならば
+        // suffixArray = { 2, 1, 0} となることが求めらる。
+        // このとき、printSuffixArrayを実行すると
+        //   suffixArray[ 0]= 2:A
+        //   suffixArray[ 1]= 1:BA
+        //   suffixArray[ 2]= 0:CBA
+        // のようになるべきである。
+
+        // バブルソート
+        int che = 0;
+        for(int i=0; i < mySpace.length - 1; i++){
+            for(int j=i+1; j < mySpace.length; j++){
+                if( suffixCompare( suffixArray[i], suffixArray[j] ) == 1){
+                    int tmp;
+                    tmp = suffixArray[i];
+                    suffixArray[i] = suffixArray[j];
+                    suffixArray[j] = tmp;
+                }
+            }
+        }
+
+    }
+
+
     // ここから始まり、指定する範囲までは変更してはならないコードである。
 
     public void setTarget(byte [] target) {

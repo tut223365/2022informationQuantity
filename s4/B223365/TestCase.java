@@ -2,6 +2,10 @@ package s4.B223365; // Please modify to s4.Bnnnnnn, where nnnnnn is your student
 import java.lang.*;
 import s4.specification.*;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+
 /*
 interface FrequencerInterface {     // This interface provides the design for frequency counter.
     void setTarget(byte[]  target); // set the data to search.
@@ -97,8 +101,25 @@ public class TestCase {
 
         myObject.setTarget("".getBytes());
         value = myObject.estimation();
+
+        String data_path = "/Users/yasujimayuu/TUT_3/後期/Computer_Programming_4/2022informationQuantity/s4/data";
+        Path file = Paths.get(data_path + "/space_100k.txt");
+        byte[] space = Files.readAllBytes(file);
+
+        file = Paths.get(data_path + "/target_10b.txt");
+        byte[] target = Files.readAllBytes(file);
+
+	    myObject = new InformationEstimator();
+        long startTime = System.currentTimeMillis();
+	    myObject.setSpace(space);
+	    myObject.setTarget(target);
+	    value = myObject.estimation();
+        long endTime = System.currentTimeMillis();
+        System.out.println("処理時間：" + (endTime - startTime) + " ms");
+
 	}
 	catch(Exception e) {
+        e.printStackTrace();
 	    System.out.println("Exception occurred in InformationEstimator Object");
 	    success = false;
 	}

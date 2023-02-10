@@ -128,7 +128,7 @@ public class InformationEstimator implements InformationEstimatorInterface {
                         iqs[j]+iqs[j+1]
                     ); 
                 } else {
-                    iqs[j] = iqs[j]*iqs[j+1];
+                    iqs[j] = iqs[j]+iqs[j+1];
                 }   
             }
         }

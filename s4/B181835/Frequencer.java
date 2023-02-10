@@ -260,10 +260,10 @@ public class Frequencer implements FrequencerInterface{
         //
         int m;
         for(m = 0; m < mySpace.length-1; m++) {
-            if(targetCompare(m, start, end) == 0) { break;
+            if(targetCompare(m, start, end) == 0) { return m;
             }
         }
-        return m; // この行は変更しなければならない、
+        return 0; // この行は変更しなければならない、
     }
 
     private int subByteEndIndex(int start, int end) {
@@ -297,10 +297,10 @@ public class Frequencer implements FrequencerInterface{
         //
         int m;
         for(m = mySpace.length-1; m > 0; m--) {
-	    if(targetCompare(m, start, end) == 0) { break;
+	    if(targetCompare(m, start, end) == 0) { return m+1;
 		}
         }
-        return m+1; // この行は変更しなければならない、
+        return 0; // この行は変更しなければならない、
     }
 
     // Suffix Arrayを使ったプログラムのホワイトテストは、
